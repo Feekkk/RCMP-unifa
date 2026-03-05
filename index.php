@@ -58,9 +58,16 @@
             align-items: center;
         }
         .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
             font-size: 1.25rem;
             font-weight: 600;
             letter-spacing: 0.02em;
+        }
+        .logo-mark {
+            height: 70px;
+            width: auto;
         }
         nav {
             position: relative;
@@ -347,6 +354,31 @@
         .program-link:hover {
             color: #ffffff;
         }
+        footer {
+            margin-top: 3rem;
+            padding-top: 1.75rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+        }
+        .footer-logo {
+            display: block;
+            height: 40px;
+            opacity: 0.9;
+        }
+        .footer-meta {
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .footer-info {
+            text-align: center;
+            line-height: 1.6;
+        }
         @media (max-width: 1100px) {
             .funding-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -387,7 +419,9 @@
     <div class="warm-gradient"></div>
     <div class="container">
         <header>
-            <span class="logo">RCMP UniFa</span>
+            <span class="logo">
+                <img src="public/official-logo.png" alt="UniKL RCMP logo" class="logo-mark">
+            </span>
             <div class="header-right">
                 <nav>
                     <button class="nav-trigger" type="button" aria-expanded="false" aria-haspopup="true">— services</button>
@@ -542,6 +576,16 @@
                 </article>
             </div>
         </section>
+
+        <footer>
+            <img src="public/rcmp-white.png" alt="UniKL RCMP" class="footer-logo">
+            <div class="footer-meta">Universiti Kuala Lumpur &middot; Royal College of Medicine Perak</div>
+            <div class="footer-info">
+                Email: rcmp@unikl.edu.my &middot; Tel: +60 (0)5-123 4567<br>
+                Location: Jalan Greentown, 30450 Ipoh, Perak, Malaysia<br>
+                Office Hours: Monday &ndash; Friday, 8:00 AM &ndash; 5:00 PM
+            </div>
+        </footer>
     </div>
 </body>
 </html>
