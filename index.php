@@ -433,8 +433,8 @@
                     </div>
                 </nav>
                 <div class="auth-actions">
-                    <a href="/login.php" class="auth-link auth-link--ghost">Login</a>
-                    <a href="/register.php" class="auth-link auth-link--solid">Register</a>
+                    <a href="auth/login.php" class="auth-link auth-link--ghost">Login</a>
+                    <a href="auth/register.php" class="auth-link auth-link--solid">Register</a>
                 </div>
             </div>
         </header>
