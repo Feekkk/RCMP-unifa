@@ -16,11 +16,20 @@
             color: #fff;
             overflow-x: hidden;
         }
+        .photo-bg {
+            position: fixed;
+            inset: 0;
+            background: url("public/bgm.png") center center / cover no-repeat;
+            filter: blur(7px);
+            transform: scale(1.04);
+            z-index: -3;
+        }
         .bg-overlay {
             position: fixed;
             inset: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background: radial-gradient(circle at top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.85));
             pointer-events: none;
+            z-index: -2;
         }
         .warm-gradient {
             position: fixed;
@@ -28,8 +37,9 @@
             right: 0;
             width: 55%;
             height: 100%;
-            background: linear-gradient(90deg, transparent 0%, rgba(120, 80, 60, 0.12) 100%);
+            background: linear-gradient(90deg, transparent 0%, rgba(120, 80, 60, 0.35) 100%);
             pointer-events: none;
+            z-index: -1;
         }
         .container {
             position: relative;
@@ -97,6 +107,42 @@
         .nav-dropdown a:hover {
             background: rgba(255,255,255,0.06);
             color: #fff;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .auth-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+        }
+        .auth-link {
+            border-radius: 999px;
+            padding: 0.45rem 1.1rem;
+            text-decoration: none;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            font-size: 0.78rem;
+        }
+        .auth-link--ghost {
+            color: rgba(255,255,255,0.8);
+            border: 1px solid rgba(255,255,255,0.35);
+        }
+        .auth-link--solid {
+            color: #0f1419;
+            background: #ffffff;
+            border: 1px solid #ffffff;
+        }
+        .auth-link--ghost:hover {
+            background: rgba(255,255,255,0.12);
+        }
+        .auth-link--solid:hover {
+            background: transparent;
+            color: #ffffff;
         }
         main {
             flex: 1;
@@ -310,7 +356,10 @@
             }
         }
         @media (max-width: 900px) {
-            .container { padding: 1.5rem 2rem 2rem; }
+            .container { padding: 1.5rem 1.5rem 2rem; }
+            header { flex-direction: row; gap: 1rem; }
+            .header-right { gap: 1rem; }
+            .auth-actions { display: none; }
             main { flex-direction: column; align-items: flex-start; }
             .hero-right { text-align: left; max-width: 100%; }
             .section-swf {
@@ -333,20 +382,27 @@
     </style>
 </head>
 <body>
+    <div class="photo-bg"></div>
     <div class="bg-overlay"></div>
     <div class="warm-gradient"></div>
     <div class="container">
         <header>
             <span class="logo">RCMP UniFa</span>
-            <nav>
-                <button class="nav-trigger" type="button" aria-expanded="false" aria-haspopup="true">— services</button>
-                <div class="nav-dropdown" role="menu">
-                    <a href="#" role="menuitem">Financial Aid</a>
-                    <a href="#" role="menuitem">Scholarships</a>
-                    <a href="#" role="menuitem">Loans &amp; Bursaries</a>
-                    <a href="#" role="menuitem">Application Status</a>
+            <div class="header-right">
+                <nav>
+                    <button class="nav-trigger" type="button" aria-expanded="false" aria-haspopup="true">— services</button>
+                    <div class="nav-dropdown" role="menu">
+                        <a href="#" role="menuitem">Financial Aid</a>
+                        <a href="#" role="menuitem">Scholarships</a>
+                        <a href="#" role="menuitem">Loans &amp; Bursaries</a>
+                        <a href="#" role="menuitem">Application Status</a>
+                    </div>
+                </nav>
+                <div class="auth-actions">
+                    <a href="/login.php" class="auth-link auth-link--ghost">Login</a>
+                    <a href="/register.php" class="auth-link auth-link--solid">Register</a>
                 </div>
-            </nav>
+            </div>
         </header>
         <main>
             <div class="hero-left">
