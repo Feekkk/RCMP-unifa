@@ -1,3 +1,46 @@
+<?php
+require_once __DIR__ . '/../database/database.php';
+
+$register_error = '';
+$register_success = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $full_name    = trim($_POST['full_name'] ?? '');
+    $email        = trim($_POST['email'] ?? '');
+    $phone        = trim($_POST['phone'] ?? '');
+    $address      = trim($_POST['address'] ?? '');
+    $bank_name    = trim($_POST['bank_name'] ?? '');
+    $bank_account = trim($_POST['bank_account'] ?? '');
+    $role         = trim($_POST['role'] ?? '');
+    $password     = $_POST['password'] ?? '';
+
+    if ($full_name === '' || $email === '' || $role === '' || $password === '') {
+        $register_error = 'Full name, email, role, and password are required.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $register_error = 'Please enter a valid email address.';
+    } else {
+        $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
+        $stmt->execute([$email]);
+        if ($stmt->fetch()) {
+            $register_error = 'An account with this email already exists.';
+        } else {
+            $password_hash = password_hash($password, PASSWORD_DEFAULT);
+            $insert = $pdo->prepare('INSERT INTO users (full_name, email, phone, address, bank_name, bank_account, role, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())');
+            $insert->execute([
+                $full_name,
+                $email,
+                $phone,
+                $address,
+                $bank_name,
+                $bank_account,
+                $role,
+                $password_hash,
+            ]);
+            $register_success = 'Account created successfully. You can now sign in.';
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -284,37 +327,46 @@
             </div>
             <h1 class="form-title">Sign up</h1>
             <p class="form-subtitle">Fill in your details to register for the UniKL Financial Aid System.</p>
+            <?php if (!empty($register_error)): ?>
+                <p style="color:#b91c1c; font-size:0.85rem; margin-bottom:1rem; background:#fee2e2; border-radius:0.75rem; padding:0.65rem 0.8rem;">
+                    <?php echo htmlspecialchars($register_error, ENT_QUOTES, 'UTF-8'); ?>
+                </p>
+            <?php elseif (!empty($register_success)): ?>
+                <p style="color:#166534; font-size:0.85rem; margin-bottom:1rem; background:#dcfce7; border-radius:0.75rem; padding:0.65rem 0.8rem;">
+                    <?php echo htmlspecialchars($register_success, ENT_QUOTES, 'UTF-8'); ?>
+                </p>
+            <?php endif; ?>
 
             <form action="" method="post" novalidate>
                 <div class="field">
                     <label for="full_name">Full name</label>
-                    <input type="text" id="full_name" name="full_name" placeholder="Enter your full name">
+                    <input type="text" id="full_name" name="full_name" placeholder="Enter your full name" value="<?php echo isset($full_name) ? htmlspecialchars($full_name, ENT_QUOTES, 'UTF-8') : ''; ?>">
                 </div>
 
                 <div class="grid-two">
                     <div class="field">
                         <label for="email">Email</label>
-                        <input type="email" id="email" name="email" placeholder="name@student.unikl.edu.my">
+                        <input type="email" id="email" name="email" placeholder="name@student.unikl.edu.my" value="<?php echo isset($email) ? htmlspecialchars($email, ENT_QUOTES, 'UTF-8') : ''; ?>">
                     </div>
                     <div class="field">
                         <label for="phone">Phone number</label>
-                        <input type="tel" id="phone" name="phone" placeholder="+60 1X-XXXX XXXX">
+                        <input type="tel" id="phone" name="phone" placeholder="+60 1X-XXXX XXXX" value="<?php echo isset($phone) ? htmlspecialchars($phone, ENT_QUOTES, 'UTF-8'); : ''; ?>">
                     </div>
                 </div>
 
                 <div class="field">
                     <label for="address">Address</label>
-                    <textarea id="address" name="address" placeholder="Current correspondence address"></textarea>
+                    <textarea id="address" name="address" placeholder="Current correspondence address"><?php echo isset($address) ? htmlspecialchars($address, ENT_QUOTES, 'UTF-8') : ''; ?></textarea>
                 </div>
 
                 <div class="grid-two">
                     <div class="field">
                         <label for="bank_name">Bank name</label>
-                        <input type="text" id="bank_name" name="bank_name" placeholder="e.g. Maybank, CIMB">
+                        <input type="text" id="bank_name" name="bank_name" placeholder="e.g. Maybank, CIMB" value="<?php echo isset($bank_name) ? htmlspecialchars($bank_name, ENT_QUOTES, 'UTF-8') : ''; ?>">
                     </div>
                     <div class="field">
                         <label for="bank_account">Bank account no.</label>
-                        <input type="text" id="bank_account" name="bank_account" placeholder="Enter bank account number">
+                        <input type="text" id="bank_account" name="bank_account" placeholder="Enter bank account number" value="<?php echo isset($bank_account) ? htmlspecialchars($bank_account, ENT_QUOTES, 'UTF-8') : ''; ?>">
                         <small>Used for disbursement of approved financial aid.</small>
                     </div>
                 </div>
@@ -324,8 +376,8 @@
                         <label for="role">Role</label>
                         <select id="role" name="role">
                             <option value="">Select role</option>
-                            <option value="student">Student</option>
-                            <option value="admin">Admin</option>
+                            <option value="student" <?php echo (isset($role) && $role === 'student') ? 'selected' : ''; ?>>Student</option>
+                            <option value="admin" <?php echo (isset($role) && $role === 'admin') ? 'selected' : ''; ?>>Admin</option>
                         </select>
                     </div>
                     <div class="field">
