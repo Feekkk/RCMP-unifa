@@ -350,7 +350,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="field">
                         <label for="phone">Phone number</label>
-                        <input type="tel" id="phone" name="phone" placeholder="+60 1X-XXXX XXXX" value="<?php echo isset($phone) ? htmlspecialchars($phone, ENT_QUOTES, 'UTF-8'); : ''; ?>">
+                        <input type="tel" id="phone" name="phone" placeholder="+60 1X-XXXX XXXX" value="<?php echo isset($phone) ? htmlspecialchars($phone, ENT_QUOTES, 'UTF-8') : ''; ?>">
                     </div>
                 </div>
 
