@@ -310,6 +310,7 @@
                     <a href="#">Forgot password?</a>
                 </div>
                 <button type="submit" class="btn btn-primary">Sign in</button>
+                <a href="../index.php" class="btn btn-ghost">Back to home</a>
                 <div class="form-footer">
                     Don&rsquo;t have an account?
                     <a href="register.php">Sign up</a>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register — RCMP UniFa</title>
+    <title>Register - RCMP UniFa</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
@@ -212,6 +212,16 @@
             transform: translateY(-1px);
             box-shadow: 0 16px 40px rgba(15,20,25,0.6);
         }
+        .btn-ghost {
+            margin-top: 0.7rem;
+            background: #ffffff;
+            color: #111827;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 0 0 rgba(0,0,0,0);
+        }
+        .btn-ghost:hover {
+            background: #f3f4f6;
+        }
         .form-footer {
             margin-top: 1.3rem;
             font-size: 0.8rem;
@@ -325,6 +335,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary">Create account</button>
+                <a href="../index.php" class="btn btn-ghost">Back to home</a>
 
                 <div class="form-footer">
                     Already have an account?
