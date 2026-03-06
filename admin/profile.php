@@ -144,7 +144,7 @@ $memberSince = $user['created_at'] ? date('F Y', strtotime($user['created_at']))
                     <div class="profile-avatar"><?php echo htmlspecialchars($initial); ?></div>
                     <div class="profile-header-text">
                         <h2><?php echo htmlspecialchars($user['full_name']); ?></h2>
-                        <p>Staff since <?php echo htmlspecialchars($memberSince); ?></p>
+                        <p>Admin since <?php echo htmlspecialchars($memberSince); ?></p>
                     </div>
                 </div>
                 <div class="profile-body">
@@ -168,7 +168,7 @@ $memberSince = $user['created_at'] ? date('F Y', strtotime($user['created_at']))
                 </div>
             </div>
             </form>
-            <footer class="page-footer">© UniKL RCMP</footer>
+            <footer class="page-footer">© University Kuala Lumpur Royal College of Medicine Perak</footer>
         </div>
     </div>
 </body>
