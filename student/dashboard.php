@@ -62,10 +62,79 @@ try {
         .app {
             position: relative;
             z-index: 1;
+            display: flex;
             min-height: 100vh;
+        }
+        .sidebar {
+            width: 260px;
+            flex-shrink: 0;
+            background: #ffffff;
+            border-right: 1px solid #e5e7eb;
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-brand {
+            padding: 0 1.25rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 1rem;
+        }
+        .sidebar-brand img {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
+        }
+        .sidebar-nav {
+            flex: 1;
+        }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem 1.25rem;
+            color: #4b5563;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: background 0.15s, color 0.15s;
+        }
+        .sidebar-nav a:hover {
+            background: #f3f4f6;
+            color: #111827;
+        }
+        .sidebar-nav a.active {
+            background: rgba(79, 70, 229, 0.08);
+            color: #4f46e5;
+            font-weight: 500;
+        }
+        .sidebar-nav a svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        .sidebar-footer {
+            padding: 1rem 1.25rem 0;
+            border-top: 1px solid #e5e7eb;
+        }
+        .sidebar-logout {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem 1.25rem;
+            color: #dc2626;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: background 0.15s, color 0.15s;
+        }
+        .sidebar-logout:hover {
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+        .sidebar-logout svg { width: 20px; height: 20px; flex-shrink: 0; }
+        .main-content {
+            flex: 1;
+            min-width: 0;
             padding: 1.5rem 2rem 2rem;
-            max-width: 1100px;
-            margin: 0 auto;
+            overflow-x: hidden;
         }
         .dashboard-header {
             display: flex;
@@ -186,6 +255,20 @@ try {
         @media (max-width: 900px) {
             .main-grid { grid-template-columns: 1fr; }
         }
+        @media (max-width: 768px) {
+            .app { flex-direction: column; }
+            .sidebar {
+                width: 100%;
+                flex-direction: row;
+                flex-wrap: wrap;
+                padding: 0.75rem 1rem;
+                gap: 0.25rem;
+            }
+            .sidebar-brand { display: none; }
+            .sidebar-nav { display: flex; flex-wrap: wrap; gap: 0.25rem; flex: 1; }
+            .sidebar-nav a { padding: 0.5rem 0.75rem; }
+            .sidebar-footer { border-top: none; padding: 0; }
+        }
         .hero-card {
             border-radius: 22px;
             overflow: hidden;
@@ -304,10 +387,23 @@ try {
     <div class="page-bg"></div>
     <div class="page-overlay"></div>
     <div class="app">
-        <header class="dashboard-header">
-            <div class="brand-mark">
-                <img src="../public/official-logo.png" alt="UniKL RCMP">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <img src="../public/official-logo.png" alt="RCMP UniFa">
             </div>
+            <nav class="sidebar-nav">
+                <a href="apply.php"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Application form</a>
+                <a href="applications.php"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>Application details</a>
+                <a href="history.php"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>View history</a>
+                <a href="profile.php"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>Profile</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="../auth/logout.php" class="sidebar-logout"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>Logout</a>
+            </div>
+        </aside>
+
+        <div class="main-content">
+        <header class="dashboard-header">
             <h1 class="dashboard-title">Student Dashboard</h1>
             <div class="top-actions">
                 <button type="button" class="btn-icon" aria-label="Notifications">
@@ -321,8 +417,6 @@ try {
             </div>
             <div class="user-menu">
                 <a href="../index.php">Home</a>
-                <span style="color:#d1d5db">|</span>
-                <a href="../auth/logout.php">Log out</a>
             </div>
         </header>
 
@@ -365,6 +459,7 @@ try {
                 </div>
             </div>
         </main>
+        </div>
     </div>
 </body>
 </html>
