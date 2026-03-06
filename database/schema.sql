@@ -29,6 +29,17 @@ CREATE TABLE IF NOT EXISTS admin (
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Approve table
+CREATE TABLE IF NOT EXISTS approve (
+    id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    staff_id       INT UNSIGNED NOT NULL,
+    full_name     VARCHAR(255) NOT NULL,
+    email         VARCHAR(255) NOT NULL UNIQUE,
+    phone         VARCHAR(50)  NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Applications Table
 -- CREATE TABLE IF NOT EXISTS applications (
 --     id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
