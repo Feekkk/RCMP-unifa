@@ -8,6 +8,23 @@ if (empty($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'student')
 }
 
 $userId = (int) $_SESSION['user_id'];
+$profile_success = '';
+$profile_error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $phone = trim($_POST['phone'] ?? '');
+    $address = trim($_POST['address'] ?? '');
+    $bank_name = trim($_POST['bank_name'] ?? '');
+    $bank_account = trim($_POST['bank_account'] ?? '');
+    try {
+        $stmt = $pdo->prepare('UPDATE users SET phone = ?, address = ?, bank_name = ?, bank_account = ? WHERE id = ?');
+        $stmt->execute([$phone, $address, $bank_name, $bank_account, $userId]);
+        $profile_success = 'Profile updated successfully.';
+    } catch (PDOException $e) {
+        $profile_error = 'Could not update profile. Please try again.';
+    }
+}
+
 $user = null;
 try {
     $stmt = $pdo->prepare('SELECT full_name, email, phone, address, bank_name, bank_account, role, created_at FROM users WHERE id = ? LIMIT 1');
@@ -75,6 +92,14 @@ $memberSince = $user['created_at'] ? date('F Y', strtotime($user['created_at']))
         .profile-label { font-size: 0.8rem; font-weight: 500; color: #6b7280; }
         .profile-value { font-size: 0.95rem; color: #111827; }
         .profile-value.empty { color: #9ca3af; }
+        .profile-body input, .profile-body textarea { width: 100%; border-radius: 10px; border: 1px solid #e5e7eb; padding: 0.6rem 0.85rem; font-size: 0.9rem; outline: none; background: #fff; transition: border-color 0.15s; font-family: inherit; }
+        .profile-body input:focus, .profile-body textarea:focus { border-color: #4f46e5; }
+        .profile-body textarea { min-height: 80px; resize: vertical; }
+        .btn-save { display: inline-flex; align-items: center; justify-content: center; padding: 0.65rem 1.5rem; border-radius: 999px; background: #0f1419; color: #f9fafb; font-size: 0.875rem; font-weight: 600; border: none; cursor: pointer; margin-top: 1rem; transition: transform 0.1s, box-shadow 0.15s; }
+        .btn-save:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,20,25,0.3); }
+        .alert { padding: 0.75rem 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.9rem; }
+        .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .alert-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
         @media (max-width: 600px) {
             .profile-row { grid-template-columns: 1fr; }
         }
@@ -112,6 +137,10 @@ $memberSince = $user['created_at'] ? date('F Y', strtotime($user['created_at']))
                 <a href="dashboard.php" class="btn-home"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Home</a>
             </div>
 
+            <?php if ($profile_success): ?><div class="alert alert-success"><?php echo htmlspecialchars($profile_success); ?></div><?php endif; ?>
+            <?php if ($profile_error): ?><div class="alert alert-error"><?php echo htmlspecialchars($profile_error); ?></div><?php endif; ?>
+
+            <form method="post" action="">
             <div class="profile-card">
                 <div class="profile-header">
                     <div class="profile-avatar"><?php echo htmlspecialchars($initial); ?></div>
@@ -131,26 +160,28 @@ $memberSince = $user['created_at'] ? date('F Y', strtotime($user['created_at']))
                     </div>
                     <div class="profile-row">
                         <span class="profile-label">Phone</span>
-                        <span class="profile-value <?php echo trim($user['phone'] ?? '') === '' ? 'empty' : ''; ?>"><?php echo htmlspecialchars($user['phone'] ?? '') ?: 'Not provided'; ?></span>
+                        <input type="text" name="phone" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" placeholder="e.g. +60 12-345 6789">
                     </div>
                     <div class="profile-row">
                         <span class="profile-label">Address</span>
-                        <span class="profile-value <?php echo trim($user['address'] ?? '') === '' ? 'empty' : ''; ?>"><?php echo nl2br(htmlspecialchars($user['address'] ?? '') ?: 'Not provided'); ?></span>
+                        <textarea name="address" placeholder="Current correspondence address"><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
                     </div>
                     <div class="profile-row">
                         <span class="profile-label">Bank name</span>
-                        <span class="profile-value <?php echo trim($user['bank_name'] ?? '') === '' ? 'empty' : ''; ?>"><?php echo htmlspecialchars($user['bank_name'] ?? '') ?: 'Not provided'; ?></span>
+                        <input type="text" name="bank_name" value="<?php echo htmlspecialchars($user['bank_name'] ?? ''); ?>" placeholder="e.g. Maybank, CIMB">
                     </div>
                     <div class="profile-row">
                         <span class="profile-label">Bank account</span>
-                        <span class="profile-value <?php echo trim($user['bank_account'] ?? '') === '' ? 'empty' : ''; ?>"><?php echo htmlspecialchars($user['bank_account'] ?? '') ?: 'Not provided'; ?></span>
+                        <input type="text" name="bank_account" value="<?php echo htmlspecialchars($user['bank_account'] ?? ''); ?>" placeholder="Account number">
                     </div>
                     <div class="profile-row">
                         <span class="profile-label">Role</span>
                         <span class="profile-value"><?php echo htmlspecialchars(ucfirst($user['role'] ?? 'student')); ?></span>
                     </div>
+                    <button type="submit" class="btn-save">Save changes</button>
                 </div>
             </div>
+            </form>
         </div>
     </div>
 </body>
