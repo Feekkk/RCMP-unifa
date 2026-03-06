@@ -3,28 +3,60 @@ session_start();
 require_once __DIR__ . '/../database/database.php';
 
 $login_error = '';
+$login_type = trim($_POST['login_type'] ?? $_GET['type'] ?? 'student');
+if (!in_array($login_type, ['student', 'staff'])) $login_type = 'student';
+$email = '';
+$staff_id = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
+    $login_type = trim($_POST['login_type'] ?? 'student');
     $password = $_POST['password'] ?? '';
+    $email = trim($_POST['email'] ?? '');
+    $staff_id = trim($_POST['staff_id'] ?? '');
 
-    if ($email === '' || $password === '') {
-        $login_error = 'Please enter both email and password.';
-    } else {
-        $stmt = $pdo->prepare('SELECT id, full_name, email, role, password_hash FROM users WHERE email = ? LIMIT 1');
-        $stmt->execute([$email]);
-        $user = $stmt->fetch();
-
-        if ($user && password_verify($password, $user['password_hash'])) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_name'] = $user['full_name'];
-            $_SESSION['user_email'] = $user['email'];
-            $_SESSION['user_role'] = $user['role'];
-
-            header('Location: ../index.php');
-            exit;
+    if ($login_type === 'staff') {
+        $staff_id = trim($_POST['staff_id'] ?? '');
+        if ($staff_id === '' || $password === '') {
+            $login_error = 'Please enter staff ID and password.';
         } else {
-            $login_error = 'Invalid email or password.';
+            try {
+                $stmt = $pdo->prepare('SELECT id, staff_id, full_name, email, password_hash FROM admin WHERE staff_id = ? LIMIT 1');
+                $stmt->execute([$staff_id]);
+                $staff = $stmt->fetch(PDO::FETCH_ASSOC);
+            } catch (PDOException $e) {
+                $staff = null;
+            }
+            if ($staff && password_verify($password, $staff['password_hash'])) {
+                $_SESSION['admin_id'] = $staff['id'];
+                $_SESSION['admin_staff_id'] = $staff['staff_id'];
+                $_SESSION['user_name'] = $staff['full_name'];
+                $_SESSION['user_email'] = $staff['email'];
+                $_SESSION['user_role'] = 'admin';
+                header('Location: ../admin/dashboard.php');
+                exit;
+            } else {
+                $login_error = 'Invalid staff ID or password.';
+            }
+        }
+    } else {
+        $email = trim($_POST['email'] ?? '');
+        if ($email === '' || $password === '') {
+            $login_error = 'Please enter both email and password.';
+        } else {
+            $stmt = $pdo->prepare('SELECT id, full_name, email, role, password_hash FROM users WHERE email = ? LIMIT 1');
+            $stmt->execute([$email]);
+            $user = $stmt->fetch();
+
+            if ($user && password_verify($password, $user['password_hash'])) {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['full_name'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_role'] = $user['role'];
+                header('Location: ../index.php');
+                exit;
+            } else {
+                $login_error = 'Invalid email or password.';
+            }
         }
     }
 }
@@ -173,7 +205,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-subtitle {
             font-size: 0.9rem;
             color: #6b7280;
-            margin-bottom: 1.6rem;
+            margin-bottom: 0.35rem;
+        }
+        .form-footer-top {
+            font-size: 0.8rem;
+            color: #6b7280;
+            text-align: left;
+            margin-bottom: 1.25rem;
+        }
+        .form-footer-top a {
+            color: #111827;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .form-footer-top a:hover {
+            text-decoration: underline;
         }
         .field {
             margin-bottom: 1rem;
@@ -281,6 +327,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-footer a:hover {
             text-decoration: underline;
         }
+        .login-tabs {
+            display: flex;
+            gap: 0.25rem;
+            margin-bottom: 1.25rem;
+            background: #e5e7eb;
+            border-radius: 999px;
+            padding: 0.25rem;
+        }
+        .login-tabs button {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            background: transparent;
+            color: #6b7280;
+            transition: background 0.15s, color 0.15s;
+        }
+        .login-tabs button.active {
+            background: #fff;
+            color: #111827;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .login-form-block { display: none; }
+        .login-form-block.active { display: block; }
+        .field input[type="text"] {
+            width: 100%;
+            border-radius: 0.9rem;
+            border: 1px solid #e5e7eb;
+            padding: 0.75rem 0.9rem;
+            font-size: 0.9rem;
+            outline: none;
+            background: #f9fafb;
+            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+        }
+        .field input[type="text"]:focus {
+            border-color: #111827;
+            background: #ffffff;
+            box-shadow: 0 0 0 1px #1118270d;
+        }
         @media (max-width: 900px) {
             .shell {
                 grid-template-columns: minmax(0, 1fr);
@@ -323,35 +411,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <span class="brand-badge">RCMP UniFa</span>
             </div>
             <h1 class="form-title">Welcome back</h1>
-            <p class="form-subtitle">Enter your email and password to access your UniFa account.</p>
+            <p class="form-subtitle" id="formSubtitle">Enter your email and password to access your UniFa account.</p>
+            <p class="form-footer-top">Don&rsquo;t have an account? <a href="register.php">Sign up</a></p>
             <?php if (!empty($login_error)): ?>
                 <p style="color:#b91c1c; font-size:0.85rem; margin-bottom:1rem; background:#fee2e2; border-radius:0.75rem; padding:0.65rem 0.8rem;">
                     <?php echo htmlspecialchars($login_error, ENT_QUOTES, 'UTF-8'); ?>
                 </p>
             <?php endif; ?>
-            <form action="" method="post" novalidate>
-                <div class="field">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" placeholder="Enter your email" value="<?php echo isset($email) ? htmlspecialchars($email, ENT_QUOTES, 'UTF-8') : ''; ?>">
+            <form action="" method="post" novalidate id="loginForm">
+                <input type="hidden" name="login_type" id="loginType" value="<?php echo htmlspecialchars($login_type); ?>">
+                <div class="login-tabs">
+                    <button type="button" class="login-tab active" data-type="student">Student</button>
+                    <button type="button" class="login-tab" data-type="staff">Staff</button>
+                </div>
+                <div id="blockStudent" class="login-form-block <?php echo $login_type === 'student' ? 'active' : ''; ?>">
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" value="<?php echo isset($email) ? htmlspecialchars($email, ENT_QUOTES, 'UTF-8') : ''; ?>">
+                    </div>
+                    <div class="field-row">
+                        <label for="remember">
+                            <input type="checkbox" id="remember" name="remember">
+                            <span>Remember me</span>
+                        </label>
+                        <a href="#">Forgot password?</a>
+                    </div>
+                </div>
+                <div id="blockStaff" class="login-form-block <?php echo $login_type === 'staff' ? 'active' : ''; ?>">
+                    <div class="field">
+                        <label for="staff_id">Staff ID</label>
+                        <input type="text" id="staff_id" name="staff_id" placeholder="Enter your staff ID" value="<?php echo isset($staff_id) ? htmlspecialchars($staff_id, ENT_QUOTES, 'UTF-8') : ''; ?>">
+                    </div>
                 </div>
                 <div class="field">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" placeholder="Enter your password">
                 </div>
-                <div class="field-row">
-                    <label for="remember">
-                        <input type="checkbox" id="remember" name="remember">
-                        <span>Remember me</span>
-                    </label>
-                    <a href="#">Forgot password?</a>
-                </div>
-                <a href="../student/dashboard.php" class="btn btn-primary">Sign in</a>
+                <button type="submit" class="btn btn-primary">Sign in</button>
                 <a href="../index.php" class="btn btn-ghost">Back to home</a>
-                <div class="form-footer">
-                    Don&rsquo;t have an account?
-                    <a href="register.php">Sign up</a>
-                </div>
             </form>
+            <script>
+            (function() {
+                var type = document.getElementById('loginType');
+                var blockStudent = document.getElementById('blockStudent');
+                var blockStaff = document.getElementById('blockStaff');
+                var subtitle = document.getElementById('formSubtitle');
+                var tabs = document.querySelectorAll('.login-tab');
+                function show(t) {
+                    type.value = t;
+                    blockStudent.classList.toggle('active', t === 'student');
+                    blockStaff.classList.toggle('active', t === 'staff');
+                    subtitle.textContent = t === 'student' ? 'Enter your email and password to access your UniFa account.' : 'Enter your staff ID and password.';
+                    tabs.forEach(function(btn) { btn.classList.toggle('active', btn.getAttribute('data-type') === t); });
+                }
+                tabs.forEach(function(btn) {
+                    btn.addEventListener('click', function() { show(btn.getAttribute('data-type')); });
+                });
+            })();
+            </script>
         </div>
     </div>
 </body>
