@@ -19,24 +19,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($staff_id === '' || $password === '') {
             $login_error = 'Please enter staff ID and password.';
         } else {
+            $staff = null;
             try {
-                $stmt = $pdo->prepare('SELECT id, staff_id, full_name, email, password_hash FROM admin WHERE staff_id = ? LIMIT 1');
+                $stmt = $pdo->prepare('SELECT id, staff_id, full_name, email, password_hash FROM admin WHERE LOWER(TRIM(staff_id)) = LOWER(?) LIMIT 1');
                 $stmt->execute([$staff_id]);
                 $staff = $stmt->fetch(PDO::FETCH_ASSOC);
             } catch (PDOException $e) {
                 $staff = null;
             }
-            if ($staff && password_verify($password, $staff['password_hash'])) {
-                $_SESSION['admin_id'] = $staff['id'];
+            if ($staff && $password === (string) $staff['password_hash']) {
+                $_SESSION['admin_id'] = (int) $staff['id'];
                 $_SESSION['admin_staff_id'] = $staff['staff_id'];
                 $_SESSION['user_name'] = $staff['full_name'];
                 $_SESSION['user_email'] = $staff['email'];
                 $_SESSION['user_role'] = 'admin';
                 header('Location: ../admin/dashboard.php');
                 exit;
-            } else {
-                $login_error = 'Invalid staff ID or password.';
             }
+            $login_error = 'Invalid staff ID or password.';
         }
     } else {
         $email = trim($_POST['email'] ?? '');
@@ -418,7 +418,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php echo htmlspecialchars($login_error, ENT_QUOTES, 'UTF-8'); ?>
                 </p>
             <?php endif; ?>
-            <form action="" method="post" novalidate id="loginForm">
+            <form action="" method="post" novalidate id="loginForm" autocomplete="off">
                 <input type="hidden" name="login_type" id="loginType" value="<?php echo htmlspecialchars($login_type); ?>">
                 <div class="login-tabs">
                     <button type="button" class="login-tab active" data-type="student">Student</button>
@@ -452,6 +452,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
             <script>
             (function() {
+                var form = document.getElementById('loginForm');
                 var type = document.getElementById('loginType');
                 var blockStudent = document.getElementById('blockStudent');
                 var blockStaff = document.getElementById('blockStaff');
@@ -466,6 +467,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 tabs.forEach(function(btn) {
                     btn.addEventListener('click', function() { show(btn.getAttribute('data-type')); });
+                });
+                form.addEventListener('submit', function() {
+                    if (blockStaff.classList.contains('active')) type.value = 'staff';
                 });
             })();
             </script>
