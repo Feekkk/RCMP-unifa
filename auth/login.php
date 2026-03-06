@@ -345,7 +345,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </label>
                     <a href="#">Forgot password?</a>
                 </div>
-                <button type="submit" class="btn btn-primary">Sign in</button>
+                <a href="../student/dashboard.php" class="btn btn-primary">Sign in</a>
                 <a href="../index.php" class="btn btn-ghost">Back to home</a>
                 <div class="form-footer">
                     Don&rsquo;t have an account?
