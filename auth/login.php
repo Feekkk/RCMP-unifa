@@ -247,6 +247,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: #ffffff;
             box-shadow: 0 0 0 1px #1118270d;
         }
+        .field-hint {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
         .field-row {
             display: flex;
             justify-content: space-between;
@@ -429,13 +434,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" placeholder="Enter your email" value="<?php echo isset($email) ? htmlspecialchars($email, ENT_QUOTES, 'UTF-8') : ''; ?>">
                     </div>
-                    <div class="field-row">
-                        <label for="remember">
-                            <input type="checkbox" id="remember" name="remember">
-                            <span>Remember me</span>
-                        </label>
-                        <a href="#">Forgot password?</a>
-                    </div>
                 </div>
                 <div id="blockStaff" class="login-form-block <?php echo $login_type === 'staff' ? 'active' : ''; ?>">
                     <div class="field">
@@ -446,6 +444,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="field">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" placeholder="Enter your password">
+                    <p class="field-hint">Forgot password? Please contact admin.</p>
                 </div>
                 <button type="submit" class="btn btn-primary">Sign in</button>
                 <a href="../index.php" class="btn btn-ghost">Back to home</a>
