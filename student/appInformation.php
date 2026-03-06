@@ -50,6 +50,7 @@ if (empty($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'student')
         .cta-box { margin-top: 1.5rem; }
         .cta-box a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.25rem; border-radius: 999px; background: #0f1419; color: #f9fafb; font-size: 0.875rem; font-weight: 600; text-decoration: none; transition: transform 0.1s, box-shadow 0.15s; }
         .cta-box a:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,20,25,0.3); }
+        .page-footer { text-align: right; padding: 1rem 0; margin-top: 2rem; font-size: 0.8rem; color: #9ca3af; }
         @media (max-width: 768px) {
             .app { flex-direction: column; }
             .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; padding: 0.75rem 1rem; }
@@ -118,6 +119,7 @@ if (empty($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'student')
             <div class="cta-box">
                 <a href="application.php">Apply for fund →</a>
             </div>
+            <footer class="page-footer">© University Kuala Lumpur Royal College of Medicine Perak</footer>
         </div>
     </div>
 </body>

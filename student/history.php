@@ -76,6 +76,7 @@ function formatDate($d) {
         .empty-state { text-align: center; padding: 3rem 2rem; color: #6b7280; font-size: 0.95rem; }
         .empty-state a { color: #4f46e5; text-decoration: none; font-weight: 500; }
         .empty-state a:hover { text-decoration: underline; }
+        .page-footer { text-align: right; padding: 1rem 0; margin-top: 2rem; font-size: 0.8rem; color: #9ca3af; }
         @media (max-width: 768px) {
             .app { flex-direction: column; }
             .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; padding: 0.75rem 1rem; }
@@ -152,6 +153,7 @@ function formatDate($d) {
                     </table>
                 <?php endif; ?>
             </div>
+            <footer class="page-footer">© University Kuala Lumpur Royal College of Medicine Perak</footer>
         </div>
     </div>
 </body>

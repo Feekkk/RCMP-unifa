@@ -124,6 +124,7 @@ function qs($overrides = []) {
         .pagination-links a, .pagination-links span { display: inline-flex; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; text-decoration: none; color: #374151; background: #fff; border: 1px solid #e5e7eb; }
         .pagination-links a:hover { background: #f3f4f6; color: #111827; }
         .pagination-links span.disabled { color: #9ca3af; cursor: not-allowed; }
+        .page-footer { text-align: right; padding: 1rem 0; margin-top: 2rem; font-size: 0.8rem; color: #9ca3af; }
         @media (max-width: 768px) {
             .app { flex-direction: column; }
             .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; padding: 0.75rem 1rem; }
@@ -268,6 +269,7 @@ function qs($overrides = []) {
                     </div>
                 </div>
             </div>
+            <footer class="page-footer">© University Kuala Lumpur Royal College of Medicine Perak</footer>
         </div>
     </div>
 </body>

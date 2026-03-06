@@ -381,6 +381,7 @@ try {
         .stat-card--purple .icon { background: rgba(255,255,255,0.2); }
         .stat-card--light .icon { background: rgba(79, 70, 229, 0.12); color: #4f46e5; }
         .stat-card .icon svg { width: 22px; height: 22px; }
+        .page-footer { text-align: right; padding: 1rem 0; margin-top: 2rem; font-size: 0.8rem; color: #9ca3af; }
     </style>
 </head>
 <body>
@@ -459,6 +460,7 @@ try {
                 </div>
             </div>
         </main>
+            <footer class="page-footer">© University Kuala Lumpur Royal College of Medicine Perak</footer>
         </div>
     </div>
 </body>

@@ -100,6 +100,7 @@ $memberSince = $user['created_at'] ? date('F Y', strtotime($user['created_at']))
         .alert { padding: 0.75rem 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.9rem; }
         .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .alert-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .page-footer { text-align: right; padding: 1rem 0; margin-top: 2rem; font-size: 0.8rem; color: #9ca3af; }
         @media (max-width: 600px) {
             .profile-row { grid-template-columns: 1fr; }
         }
@@ -181,6 +182,7 @@ $memberSince = $user['created_at'] ? date('F Y', strtotime($user['created_at']))
                 </div>
             </div>
             </form>
+            <footer class="page-footer">© University Kuala Lumpur Royal College of Medicine Perak</footer>
         </div>
     </div>
 </body>

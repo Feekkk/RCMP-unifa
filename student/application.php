@@ -96,6 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .alert { padding: 0.75rem 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.9rem; }
         .alert-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
         .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .page-footer { text-align: right; padding: 1rem 0; margin-top: 2rem; font-size: 0.8rem; color: #9ca3af; }
         @media (max-width: 768px) {
             .app { flex-direction: column; }
             .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; padding: 0.75rem 1rem; }
@@ -217,6 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <button type="submit" class="btn-submit">Submit application</button>
                 </div>
             </form>
+            <footer class="page-footer">© University Kuala Lumpur Royal College of Medicine Perak</footer>
         </div>
     </div>
 
