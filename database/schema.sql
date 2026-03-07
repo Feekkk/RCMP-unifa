@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     full_name     VARCHAR(255) NOT NULL,
     email         VARCHAR(255) NOT NULL UNIQUE,
     course        VARCHAR(255) NULL,
-    semester      VARCHAR(255) NULL,
+    year          VARCHAR(50)  NULL,
     phone         VARCHAR(50)  NULL,
     address       TEXT         NULL,
     bank_name     VARCHAR(255) NULL,
