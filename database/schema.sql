@@ -32,16 +32,42 @@ CREATE TABLE IF NOT EXISTS staff (
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Applications Table
--- CREATE TABLE IF NOT EXISTS applications (
---     id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
---     user_id         INT UNSIGNED NOT NULL,
---     category        VARCHAR(50)  NOT NULL,
---     subtype         VARCHAR(50)  NOT NULL,
---     amount_applied  DECIMAL(10,2) NULL,
---     bank_name       VARCHAR(255) NOT NULL,
---     bank_account    VARCHAR(255) NOT NULL,
---     status          VARCHAR(30)  NOT NULL DEFAULT 'pending',
---     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
---     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Status table (application status flow: submit -> under_review -> pending -> approved; or reject)
+CREATE TABLE IF NOT EXISTS status (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name            VARCHAR(50)  NOT NULL UNIQUE,
+    display_order   TINYINT UNSIGNED NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO status (name, display_order) VALUES
+('pending', 1),
+('under_review', 2),
+('approved', 3),
+('rejected', 4),
+('disbursed', 5)
+ON DUPLICATE KEY UPDATE display_order = VALUES(display_order);
+
+-- Applications table
+CREATE TABLE IF NOT EXISTS applications (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id         INT UNSIGNED NOT NULL,
+    category        VARCHAR(50)  NOT NULL,
+    subtype         VARCHAR(50)  NOT NULL,
+    amount_applied  DECIMAL(10,2) NULL,
+    bank_name       VARCHAR(255) NOT NULL,
+    bank_account    VARCHAR(255) NOT NULL,
+    status_id       INT UNSIGNED NOT NULL DEFAULT 1,
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (status_id) REFERENCES status(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Document table (file paths for application uploads)
+CREATE TABLE IF NOT EXISTS document (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    application_id  INT UNSIGNED NOT NULL,
+    file_path       VARCHAR(500) NOT NULL,
+    document_type   VARCHAR(100) NOT NULL COMMENT 'e.g. death_certificate, receipt_clinic, supporting_doc',
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
