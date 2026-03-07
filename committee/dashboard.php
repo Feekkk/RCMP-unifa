@@ -11,7 +11,7 @@ $committeeName = $_SESSION['user_name'] ?? 'Committee';
 $pendingCount = 0;
 $totalApplications = 0;
 try {
-    $stmt = $pdo->query('SELECT COUNT(*) FROM applications WHERE status IN ("pending","under_review")');
+    $stmt = $pdo->query('SELECT COUNT(*) FROM applications WHERE status_id IN (1, 2)');
     $pendingCount = (int) $stmt->fetchColumn();
     $stmt = $pdo->query('SELECT COUNT(*) FROM applications');
     $totalApplications = (int) $stmt->fetchColumn();
