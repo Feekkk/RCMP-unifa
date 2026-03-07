@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS users (
     id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     full_name     VARCHAR(255) NOT NULL,
     email         VARCHAR(255) NOT NULL UNIQUE,
+    course        VARCHAR(255) NULL,
+    semester      VARCHAR(255) NULL,
     phone         VARCHAR(50)  NULL,
     address       TEXT         NULL,
     bank_name     VARCHAR(255) NULL,
