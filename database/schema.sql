@@ -47,7 +47,7 @@ INSERT INTO status (name, display_order) VALUES
 ('disbursed', 5)
 ON DUPLICATE KEY UPDATE display_order = VALUES(display_order);
 
--- Applications table
+-- Applications table (sparse columns for category-specific data)
 CREATE TABLE IF NOT EXISTS applications (
     id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id         INT UNSIGNED NOT NULL,
@@ -57,6 +57,12 @@ CREATE TABLE IF NOT EXISTS applications (
     bank_name       VARCHAR(255) NOT NULL,
     bank_account    VARCHAR(255) NOT NULL,
     status_id       INT UNSIGNED NOT NULL DEFAULT 1,
+    clinic_name     VARCHAR(255) NULL COMMENT 'outpatient',
+    reason_visit    VARCHAR(255) NULL COMMENT 'outpatient, inpatient',
+    visit_datetime  DATETIME     NULL COMMENT 'outpatient',
+    checkin_date    DATE         NULL COMMENT 'inpatient',
+    checkout_date   DATE         NULL COMMENT 'inpatient',
+    case_description TEXT        NULL COMMENT 'emergency natural/others',
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (status_id) REFERENCES status(id)
