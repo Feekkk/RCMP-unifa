@@ -10,12 +10,22 @@ if (empty($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'student')
 $userId = (int) $_SESSION['user_id'];
 $success = '';
 $error = '';
+$userBank = ['bank_name' => '', 'bank_account' => ''];
+try {
+    $stmt = $pdo->prepare('SELECT bank_name, bank_account FROM users WHERE id = ? LIMIT 1');
+    $stmt->execute([$userId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($row) {
+        $userBank['bank_name'] = $row['bank_name'] ?? '';
+        $userBank['bank_account'] = $row['bank_account'] ?? '';
+    }
+} catch (PDOException $e) {}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $category = trim($_POST['category'] ?? '');
     $subtype = trim($_POST['subtype'] ?? '');
-    $bank_name = trim($_POST['bank_name'] ?? '');
-    $bank_account = trim($_POST['bank_account'] ?? '');
+    $bank_name = trim($userBank['bank_name']);
+    $bank_account = trim($userBank['bank_account']);
     $amount = trim($_POST['amount_applied'] ?? '');
 
     $valid = in_array($category, ['bereavement', 'illness', 'emergency']) && $subtype !== '' && $bank_name !== '' && $bank_account !== '';
@@ -24,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$valid) {
-        $error = 'Please fill required fields (category, subtype, bank name, bank account' . ($category !== 'bereavement' ? ', amount' : '') . ').';
+        $error = ($bank_name === '' || $bank_account === '') ? 'Please update your bank name and account in Profile first.' : 'Please fill required fields (category, subtype' . ($category !== 'bereavement' ? ', amount' : '') . ').';
     } else {
         try {
             $stmt = $pdo->prepare('INSERT INTO applications (user_id, category, subtype, amount_applied, bank_name, bank_account, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())');
@@ -86,6 +96,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .field label .note { font-weight: 400; color: #6b7280; }
         .field input, .field select, .field textarea { width: 100%; border-radius: 10px; border: 1px solid #e5e7eb; padding: 0.65rem 0.85rem; font-size: 0.9rem; outline: none; background: #fff; transition: border-color 0.15s; }
         .field input:focus, .field select:focus, .field textarea:focus { border-color: #4f46e5; }
+        .field input[readonly] { background: #f9fafb; color: #6b7280; cursor: not-allowed; }
+        .info-banner { padding: 0.85rem 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; margin-bottom: 1.5rem; font-size: 0.9rem; color: #1e40af; }
+        .info-banner a { color: #1e40af; font-weight: 500; text-decoration: none; }
+        .info-banner a:hover { text-decoration: underline; }
         .field textarea { min-height: 80px; resize: vertical; }
         .field-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
         .field-block { display: none; }
@@ -129,6 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h1 class="page-title">Fund Application</h1>
                 <a href="dashboard.php" class="btn-home"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Home</a>
             </div>
+            <p class="info-banner">Refer to <a href="appInformation.php">Application info</a> for further information about the application.</p>
             <?php if ($error): ?><div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div><?php endif; ?>
             <?php if ($success): ?><div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div><?php endif; ?>
 
@@ -210,8 +225,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div id="commonBank" class="field-block">
                         <hr style="margin:1.25rem 0;border:0;border-top:1px solid #e5e7eb">
-                        <div class="field"><label for="bank_name">Bank name</label><input type="text" id="bank_name" name="bank_name" placeholder="e.g. Maybank, CIMB"></div>
-                        <div class="field"><label for="bank_account">Bank account number</label><input type="text" id="bank_account" name="bank_account" placeholder="Account number"></div>
+                        <div class="field"><label for="bank_name">Bank name <span class="note">(from Profile)</span></label><input type="text" id="bank_name" name="bank_name" value="<?php echo htmlspecialchars($userBank['bank_name']); ?>" placeholder="e.g. Maybank, CIMB" readonly></div>
+                        <div class="field"><label for="bank_account">Bank account number <span class="note">(from Profile)</span></label><input type="text" id="bank_account" name="bank_account" value="<?php echo htmlspecialchars($userBank['bank_account']); ?>" placeholder="Account number" readonly></div>
                         <div class="field" id="wrapAmount" style="display:none"><label for="amount_applied">Total amount applied (RM)</label><input type="number" id="amount_applied" name="amount_applied" step="0.01" min="0" placeholder="0.00"></div>
                     </div>
 
