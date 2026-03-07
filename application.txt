@@ -14,3 +14,8 @@
     - Critical Illness, Critical illness initial diagnose, accompanied with appropriate supporting documents, up to RM 200.00 as per claim basis. (Total Amount Applied (RM) (Fill In) Bank Name (Fill In) No Account Bank (Fill In) Supporting Document *Upload File*)
     - Natural Disaster, * The limit of contribution is RM200 only. A copy of certified evidence should be included for the claimed incident (Case (Fill In) Total Amount Applied (RM) (Fill In) Bank Name (Fill In) No Account Bank (Fill In) Supporting Document (Police Report, Photo of incident) *Upload File*)
     - Others, * Requisition of emergency fund other than the critical illness & natural disaster cases (is subject to SWF Campus committee approval (Case(Fill In) Total Amount Applied (RM) (Fill In) Bank Name (Fill In) No Account Bank (Fill In) Supporting Document (Police Report, Photo of incident) *Upload File*)
+
+STATUS FLOW
+
+success -> under review -> pending (when admin approve all document, forward to committee) -> approve (by committee)
+reject -> under review -> pending (admin contact student to complete the document) -> reject 
