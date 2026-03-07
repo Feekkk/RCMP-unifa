@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS admin (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Approve table
-CREATE TABLE IF NOT EXISTS approve (
+CREATE TABLE IF NOT EXISTS committee (
     id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     staff_id       INT UNSIGNED NOT NULL,
     full_name     VARCHAR(255) NOT NULL,
