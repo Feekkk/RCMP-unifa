@@ -27,7 +27,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $bank_name = trim($userBank['bank_name']);
     $bank_account = trim($userBank['bank_account']);
     $amount = trim($_POST['amount_applied'] ?? '');
+    $clinic_name = trim($_POST['clinic_name'] ?? '');
+    $reason_visit = trim($_POST['reason_visit'] ?? '');
+    $visit_datetime = trim($_POST['visit_datetime'] ?? '');
+    $checkin_date = trim($_POST['checkin_date'] ?? '');
+    $checkout_date = trim($_POST['checkout_date'] ?? '');
+    $case_description = trim($_POST['case_description'] ?? '');
 
+    $amounts = ['bereavement' => ['student' => 500, 'parent' => 200, 'sibling' => 100]];
+    if ($category === 'bereavement' && isset($amounts['bereavement'][$subtype])) {
+        $amount = (string) $amounts['bereavement'][$subtype];
+    }
     $valid = in_array($category, ['bereavement', 'illness', 'emergency']) && $subtype !== '' && $bank_name !== '' && $bank_account !== '';
     if ($category === 'illness' || $category === 'emergency') {
         $valid = $valid && $amount !== '' && is_numeric($amount);
@@ -37,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = ($bank_name === '' || $bank_account === '') ? 'Please update your bank name and account in Profile first.' : 'Please fill required fields (category, subtype' . ($category !== 'bereavement' ? ', amount' : '') . ').';
     } else {
         try {
-            $stmt = $pdo->prepare('INSERT INTO applications (user_id, category, subtype, amount_applied, bank_name, bank_account, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())');
+            $stmt = $pdo->prepare('INSERT INTO applications (user_id, category, subtype, amount_applied, bank_name, bank_account, status_id, clinic_name, reason_visit, visit_datetime, checkin_date, checkout_date, case_description, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, NOW())');
             $stmt->execute([
                 $userId,
                 $category,
@@ -45,9 +55,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $amount ?: null,
                 $bank_name,
                 $bank_account,
-                'pending'
+                $clinic_name ?: null,
+                $reason_visit ?: null,
+                $visit_datetime ?: null,
+                $checkin_date ?: null,
+                $checkout_date ?: null,
+                $case_description ?: null,
             ]);
-            $success = 'Application submitted successfully.';
+            $appId = (int) $pdo->lastInsertId();
+
+            $uploadDir = __DIR__ . '/../public/documents/' . date('Ym');
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $docTypes = ['death_certificate', 'receipt_clinic', 'documents', 'supporting_doc'];
+            foreach ($docTypes as $dt) {
+                $up = $_FILES[$dt] ?? [];
+                $fname = is_array($up['name'] ?? null) ? ($up['name'][0] ?? '') : ($up['name'] ?? '');
+                $ferr = is_array($up['error'] ?? null) ? ($up['error'][0] ?? UPLOAD_ERR_NO_FILE) : ($up['error'] ?? UPLOAD_ERR_NO_FILE);
+                $tmp = is_array($up['tmp_name'] ?? null) ? ($up['tmp_name'][0] ?? '') : ($up['tmp_name'] ?? '');
+                if ($fname !== '' && $ferr === UPLOAD_ERR_OK && $tmp !== '') {
+                    $ext = pathinfo($fname, PATHINFO_EXTENSION) ?: 'bin';
+                    $ext = in_array(strtolower($ext), ['pdf', 'jpg', 'jpeg', 'png']) ? strtolower($ext) : 'bin';
+                    $filename = uniqid('', true) . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', basename($fname));
+                    $dest = $uploadDir . '/' . $filename;
+                    if (move_uploaded_file($tmp, $dest)) {
+                        $relPath = 'documents/' . date('Ym') . '/' . $filename;
+                        $ins = $pdo->prepare('INSERT INTO document (application_id, file_path, document_type, created_at) VALUES (?, ?, ?, NOW())');
+                        $ins->execute([$appId, $relPath, $dt]);
+                    }
+                }
+            }
+
             header('Location: dashboard.php?submitted=1');
             exit;
         } catch (PDOException $e) {
@@ -302,6 +342,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         showBlock();
     });
     subtypeEl.addEventListener('change', showBlock);
+
+    var fundForm = document.getElementById('fundForm');
+    if (fundForm) {
+        fundForm.addEventListener('submit', function() {
+            document.querySelectorAll('.field-block:not(.active) input[type="file"]').forEach(function(inp) {
+                inp.disabled = true;
+            });
+        });
+    }
     </script>
 </body>
 </html>

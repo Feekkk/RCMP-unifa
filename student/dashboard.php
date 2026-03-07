@@ -17,10 +17,10 @@ try {
     $stmt = $pdo->prepare('SELECT COUNT(*) FROM applications WHERE user_id = ?');
     $stmt->execute([$userId]);
     $applicationsSubmitted = (int) $stmt->fetchColumn();
-    $stmt = $pdo->prepare('SELECT COUNT(*) FROM applications WHERE user_id = ? AND status IN ("pending","under_review")');
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM applications WHERE user_id = ? AND status_id IN (1, 2)');
     $stmt->execute([$userId]);
     $pendingReview = (int) $stmt->fetchColumn();
-    $stmt = $pdo->prepare('SELECT COUNT(*) FROM applications WHERE user_id = ? AND status IN ("approved","disbursed")');
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM applications WHERE user_id = ? AND status_id IN (3, 5)');
     $stmt->execute([$userId]);
     $approvedOrDisbursed = (int) $stmt->fetchColumn();
 } catch (PDOException $e) {

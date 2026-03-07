@@ -10,7 +10,7 @@ if (empty($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'student')
 $userId = (int) $_SESSION['user_id'];
 $applications = [];
 try {
-    $stmt = $pdo->prepare('SELECT id, category, subtype, amount_applied, bank_name, bank_account, status, created_at FROM applications WHERE user_id = ? ORDER BY created_at DESC');
+    $stmt = $pdo->prepare('SELECT a.id, a.category, a.subtype, a.amount_applied, a.bank_name, a.bank_account, s.name AS status, a.created_at FROM applications a LEFT JOIN status s ON a.status_id = s.id WHERE a.user_id = ? ORDER BY a.created_at DESC');
     $stmt->execute([$userId]);
     $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
