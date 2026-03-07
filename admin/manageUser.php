@@ -38,7 +38,7 @@ try {
 } catch (PDOException $e) {}
 
 try {
-    $sql = 'SELECT id, staff_id, full_name, email, phone, created_at FROM admin WHERE 1=1';
+    $sql = 'SELECT id, staff_id, full_name, email, phone, created_at FROM staff WHERE role = 1';
     $params = [];
     if ($staffQ !== '') {
         $sql .= ' AND (staff_id LIKE ? OR full_name LIKE ?)';

@@ -18,7 +18,7 @@ if ($id > 0) {
             $stmt->execute([$id]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
         } else {
-            $stmt = $pdo->prepare('SELECT id, staff_id, full_name, email, phone, created_at FROM admin WHERE id = ?');
+            $stmt = $pdo->prepare('SELECT id, staff_id, full_name, email, phone, created_at FROM staff WHERE id = ? AND role = 1');
             $stmt->execute([$id]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
         }

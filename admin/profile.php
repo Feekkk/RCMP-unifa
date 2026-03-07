@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $profile_error = 'Full name and email are required.';
     } else {
         try {
-            $stmt = $pdo->prepare('UPDATE admin SET full_name = ?, email = ?, phone = ? WHERE id = ?');
+            $stmt = $pdo->prepare('UPDATE staff SET full_name = ?, email = ?, phone = ? WHERE id = ? AND role = 1');
             $stmt->execute([$full_name, $email, $phone, $adminId]);
             $_SESSION['user_name'] = $full_name;
             $_SESSION['user_email'] = $email;
@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $user = null;
 try {
-    $stmt = $pdo->prepare('SELECT staff_id, full_name, email, phone, created_at FROM admin WHERE id = ? LIMIT 1');
+    $stmt = $pdo->prepare('SELECT staff_id, full_name, email, phone, created_at FROM staff WHERE id = ? AND role = 1 LIMIT 1');
     $stmt->execute([$adminId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {}
