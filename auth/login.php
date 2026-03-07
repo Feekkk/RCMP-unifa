@@ -15,25 +15,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $staff_id = trim($_POST['staff_id'] ?? '');
 
     if ($login_type === 'staff') {
-        $staff_id = trim($_POST['staff_id'] ?? '');
         if ($staff_id === '' || $password === '') {
             $login_error = 'Please enter staff ID and password.';
         } else {
-            $staff = null;
+            $row = null;
             try {
-                $stmt = $pdo->prepare('SELECT id, staff_id, full_name, email, password_hash FROM admin WHERE LOWER(TRIM(staff_id)) = LOWER(?) LIMIT 1');
+                $stmt = $pdo->prepare('SELECT id, staff_id, full_name, email, password_hash, role FROM staff WHERE LOWER(TRIM(staff_id)) = LOWER(?) LIMIT 1');
                 $stmt->execute([$staff_id]);
-                $staff = $stmt->fetch(PDO::FETCH_ASSOC);
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
             } catch (PDOException $e) {
-                $staff = null;
+                $row = null;
             }
-            if ($staff && $password === (string) $staff['password_hash']) {
-                $_SESSION['admin_id'] = (int) $staff['id'];
-                $_SESSION['admin_staff_id'] = $staff['staff_id'];
-                $_SESSION['user_name'] = $staff['full_name'];
-                $_SESSION['user_email'] = $staff['email'];
-                $_SESSION['user_role'] = 'admin';
-                header('Location: ../admin/dashboard.php');
+            $hash = $row['password_hash'] ?? '';
+            $pwdOk = $row && (
+                $password === (string) $hash ||
+                (strlen($hash) > 20 && password_verify($password, $hash))
+            );
+            if ($pwdOk) {
+                if ($row['role'] == 2) {
+                    $_SESSION['committee_id'] = (int) $row['id'];
+                    $_SESSION['committee_staff_id'] = $row['staff_id'];
+                    $_SESSION['user_name'] = $row['full_name'];
+                    $_SESSION['user_email'] = $row['email'];
+                    $_SESSION['user_role'] = 'committee';
+                    header('Location: ../committee/dashboard.php');
+                } else {
+                    $_SESSION['admin_id'] = (int) $row['id'];
+                    $_SESSION['admin_staff_id'] = $row['staff_id'];
+                    $_SESSION['user_name'] = $row['full_name'];
+                    $_SESSION['user_email'] = $row['email'];
+                    $_SESSION['user_role'] = 'admin';
+                    header('Location: ../admin/dashboard.php');
+                }
                 exit;
             }
             $login_error = 'Invalid staff ID or password.';
@@ -232,16 +245,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 0.4rem;
         }
         .field input[type="email"],
-        .field input[type="password"] {
+        .field input[type="password"],
+        .field input[type="text"].pw-field {
             width: 100%;
             border-radius: 0.9rem;
             border: 1px solid #e5e7eb;
-            padding: 0.75rem 0.9rem;
+            padding: 0.75rem 2.75rem 0.75rem 0.9rem;
             font-size: 0.9rem;
             outline: none;
             background: #f9fafb;
             transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
         }
+        .pw-wrap { position: relative; }
+        .pw-wrap .btn-toggle-pw {
+            position: absolute;
+            right: 0.6rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        .pw-wrap .btn-toggle-pw:hover { color: #111827; background: #f3f4f6; }
+        .pw-wrap .btn-toggle-pw svg { width: 18px; height: 18px; }
         .field input:focus {
             border-color: #111827;
             background: #ffffff;
@@ -443,7 +477,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="field">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" placeholder="Enter your password">
+                    <div class="pw-wrap">
+                        <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="off">
+                        <button type="button" class="btn-toggle-pw" aria-label="Show password" title="Show password">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        </button>
+                    </div>
                     <p class="field-hint">Forgot password? Please contact admin.</p>
                 </div>
                 <button type="submit" class="btn btn-primary">Sign in</button>
@@ -457,11 +496,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 var blockStaff = document.getElementById('blockStaff');
                 var subtitle = document.getElementById('formSubtitle');
                 var tabs = document.querySelectorAll('.login-tab');
+                var subtitles = { student: 'Enter your email and password to access your UniFa account.', staff: 'Enter your staff ID and password.' };
                 function show(t) {
                     type.value = t;
                     blockStudent.classList.toggle('active', t === 'student');
                     blockStaff.classList.toggle('active', t === 'staff');
-                    subtitle.textContent = t === 'student' ? 'Enter your email and password to access your UniFa account.' : 'Enter your staff ID and password.';
+                    subtitle.textContent = subtitles[t] || subtitles.student;
                     tabs.forEach(function(btn) { btn.classList.toggle('active', btn.getAttribute('data-type') === t); });
                 }
                 tabs.forEach(function(btn) {
@@ -470,6 +510,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 form.addEventListener('submit', function() {
                     if (blockStaff.classList.contains('active')) type.value = 'staff';
                 });
+                var pwInput = document.getElementById('password');
+                var pwBtn = form.querySelector('.btn-toggle-pw');
+                if (pwBtn && pwInput) {
+                    pwBtn.addEventListener('click', function() {
+                        var isPw = pwInput.type === 'password';
+                        pwInput.type = isPw ? 'text' : 'password';
+                        pwBtn.setAttribute('aria-label', isPw ? 'Hide password' : 'Show password');
+                        pwBtn.setAttribute('title', isPw ? 'Hide password' : 'Show password');
+                        pwBtn.innerHTML = isPw
+                            ? '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>'
+                            : '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>';
+                    });
+                }
             })();
             </script>
         </div>
