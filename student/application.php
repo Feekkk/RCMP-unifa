@@ -95,6 +95,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $case_description ?: null,
             ]);
             $appId = (int) $pdo->lastInsertId();
+            $pdo->prepare('INSERT INTO application_history (application_id, from_status_id, to_status_id, staff_id, action, notes) VALUES (?, NULL, 1, NULL, ?, NULL)')
+                ->execute([$appId, 'submit']);
 
             $uploadDir = __DIR__ . '/../public/documents/' . date('Ym');
             if (!is_dir($uploadDir)) {
