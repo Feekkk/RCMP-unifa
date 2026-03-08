@@ -77,3 +77,19 @@ CREATE TABLE IF NOT EXISTS document (
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Application status history (audit trail: who changed status, when)
+CREATE TABLE IF NOT EXISTS application_history (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    application_id  INT UNSIGNED NOT NULL,
+    from_status_id  INT UNSIGNED NULL,
+    to_status_id    INT UNSIGNED NOT NULL,
+    staff_id        INT UNSIGNED NULL,
+    action          VARCHAR(50)  NULL COMMENT 'submit,review,approve,reject,disburse',
+    notes           TEXT         NULL,
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
+    FOREIGN KEY (staff_id) REFERENCES staff(id) ON DELETE SET NULL,
+    FOREIGN KEY (from_status_id) REFERENCES status(id) ON DELETE SET NULL,
+    FOREIGN KEY (to_status_id) REFERENCES status(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
