@@ -8,11 +8,37 @@ if (empty($_SESSION['admin_id']) && ($_SESSION['user_role'] ?? '') !== 'admin') 
 }
 
 $adminName = $_SESSION['user_name'] ?? 'Staff';
+$adminStaffId = (int) ($_SESSION['admin_id'] ?? 0);
 $appId = (int) ($_GET['id'] ?? 0);
+$recommendMsg = $_GET['m'] ?? '';
 $app = null;
 $user = null;
 $statusName = '';
 $documents = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'recommend' && $appId > 0) {
+    $comment = trim((string) ($_POST['comment'] ?? ''));
+    try {
+        $stmt = $pdo->prepare('SELECT status_id FROM applications WHERE id = ?');
+        $stmt->execute([$appId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row && (int) $row['status_id'] === 1) {
+            $pdo->beginTransaction();
+            $pdo->prepare('UPDATE applications SET status_id = 2 WHERE id = ?')->execute([$appId]);
+            $pdo->prepare('INSERT INTO application_history (application_id, from_status_id, to_status_id, staff_id, action, notes) VALUES (?, 1, 2, ?, ?, ?)')
+                ->execute([$appId, $adminStaffId ?: null, 'recommend', $comment ?: null]);
+            $pdo->commit();
+            $recommendMsg = 'success';
+        } else {
+            $recommendMsg = 'invalid';
+        }
+    } catch (PDOException $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        $recommendMsg = 'error';
+    }
+    header('Location: viewApplication.php?id=' . $appId . '&m=' . $recommendMsg);
+    exit;
+}
 
 if ($appId > 0) {
     try {
@@ -106,6 +132,13 @@ function docLabel($t) { return ucwords(str_replace('_', ' ', $t)); }
         .badge--rejected { background: #fef2f2; color: #b91c1c; }
         .badge--disbursed { background: #eef2ff; color: #3730a3; }
         .page-footer { text-align: right; padding: 1rem 0; margin-top: 1rem; font-size: 0.8rem; color: #9ca3af; }
+        .action-card { border-radius: 14px; border: 1px solid #e5e7eb; background: #fff; padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .action-card textarea { width: 100%; border-radius: 10px; border: 1px solid #e5e7eb; padding: 0.65rem 0.85rem; font-size: 0.9rem; min-height: 80px; resize: vertical; }
+        .action-card .btn-recommend { padding: 0.6rem 1.25rem; border-radius: 10px; background: #4f46e5; color: #fff; font-size: 0.9rem; font-weight: 600; border: none; cursor: pointer; margin-top: 0.75rem; }
+        .action-card .btn-recommend:hover { background: #4338ca; }
+        .flash { padding: 0.75rem 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.9rem; }
+        .flash-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .flash-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
         @media (max-width: 768px) {
             .app { flex-direction: column; }
             .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; padding: 0.75rem 1rem; }
@@ -144,6 +177,9 @@ function docLabel($t) { return ucwords(str_replace('_', ' ', $t)); }
             </header>
 
             <a href="application.php" class="btn-back">← Back to Applications</a>
+
+            <?php if ($recommendMsg === 'success'): ?><div class="flash flash-success">Application recommended and moved to Under Review.</div><?php endif; ?>
+            <?php if ($recommendMsg === 'error'): ?><div class="flash flash-error">Could not update. Please try again.</div><?php endif; ?>
 
             <?php if (!$app): ?>
                 <div class="not-found">Application not found or invalid ID.</div>
@@ -209,6 +245,20 @@ function docLabel($t) { return ucwords(str_replace('_', ' ', $t)); }
                         </div>
                     <?php endif; ?>
                 </div>
+
+                <?php if ((int) ($app['status_id'] ?? 0) === 1): ?>
+                <div class="card action-card">
+                    <h3>Admin Action</h3>
+                    <form method="post" action="">
+                        <input type="hidden" name="action" value="recommend">
+                        <div class="field" style="margin-bottom:0.75rem">
+                            <label for="comment" class="info-label" style="display:block;margin-bottom:0.35rem">Comment</label>
+                            <textarea name="comment" id="comment" placeholder="Optional comment..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-recommend">Recommended</button>
+                    </form>
+                </div>
+                <?php endif; ?>
             <?php endif; ?>
 
             <footer class="page-footer">© University Kuala Lumpur Royal College of Medicine Perak</footer>
