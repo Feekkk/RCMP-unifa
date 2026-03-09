@@ -32,13 +32,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 (strlen($hash) > 20 && password_verify($password, $hash))
             );
             if ($pwdOk) {
-                if ($row['role'] == 2) {
+                $role = (int) $row['role'];
+                if ($role === 2) {
                     $_SESSION['committee_id'] = (int) $row['id'];
                     $_SESSION['committee_staff_id'] = $row['staff_id'];
                     $_SESSION['user_name'] = $row['full_name'];
                     $_SESSION['user_email'] = $row['email'];
                     $_SESSION['user_role'] = 'committee';
                     header('Location: ../committee/dashboard.php');
+                } elseif ($role === 3) {
+                    $_SESSION['ceo_id'] = (int) $row['id'];
+                    $_SESSION['ceo_staff_id'] = $row['staff_id'];
+                    $_SESSION['user_name'] = $row['full_name'];
+                    $_SESSION['user_email'] = $row['email'];
+                    $_SESSION['user_role'] = 'ceo';
+                    header('Location: ../ceo/dashboard.php');
                 } else {
                     $_SESSION['admin_id'] = (int) $row['id'];
                     $_SESSION['admin_staff_id'] = $row['staff_id'];
