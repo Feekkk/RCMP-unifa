@@ -10,6 +10,33 @@ if (empty($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'student')
 $userId = (int) $_SESSION['user_id'];
 $userName = $_SESSION['user_name'] ?? 'Student';
 
+$msg = $_GET['m'] ?? '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = (string) ($_POST['action'] ?? '');
+    $notifId = (int) ($_POST['notification_id'] ?? 0);
+    try {
+        if ($action === 'mark_read' && $notifId > 0) {
+            $stmt = $pdo->prepare('UPDATE notification SET is_read = 1 WHERE id = ? AND user_id = ?');
+            $stmt->execute([$notifId, $userId]);
+        } elseif ($action === 'clear' && $notifId > 0) {
+            $stmt = $pdo->prepare('DELETE FROM notification WHERE id = ? AND user_id = ?');
+            $stmt->execute([$notifId, $userId]);
+        } elseif ($action === 'mark_all_read') {
+            $stmt = $pdo->prepare('UPDATE notification SET is_read = 1 WHERE user_id = ?');
+            $stmt->execute([$userId]);
+        } elseif ($action === 'clear_all') {
+            $stmt = $pdo->prepare('DELETE FROM notification WHERE user_id = ?');
+            $stmt->execute([$userId]);
+        }
+        header('Location: dashboard.php');
+        exit;
+    } catch (PDOException $e) {
+        header('Location: dashboard.php?m=notif_error');
+        exit;
+    }
+}
+
 $applicationsSubmitted = 0;
 $pendingReview = 0;
 $approvedOrDisbursed = 0;
@@ -448,6 +475,50 @@ try {
         .notif-dropdown.open { display: block; }
         .notif-dropdown-header { padding: 1rem 1.25rem; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size: 0.95rem; }
         .notif-dropdown-body { padding: 0.5rem; }
+        .notif-actions { display: flex; gap: 0.5rem; padding: 0.75rem 0.75rem 0.25rem; flex-wrap: wrap; }
+        .notif-actions form { margin: 0; }
+        .notif-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            color: #374151;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+        }
+        .notif-btn:hover { background: #f9fafb; border-color: #d1d5db; color: #111827; }
+        .notif-btn--danger { border-color: #fecaca; color: #b91c1c; background: #fff; }
+        .notif-btn--danger:hover { background: #fef2f2; border-color: #fca5a5; }
+        .notif-row { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.75rem 1rem; border-radius: 12px; }
+        .notif-row.unread { background: rgba(79, 70, 229, 0.06); }
+        .notif-row:hover { background: #f9fafb; }
+        .notif-row.unread:hover { background: rgba(79, 70, 229, 0.1); }
+        .notif-content { flex: 1; min-width: 0; }
+        .notif-controls { display: flex; gap: 0.4rem; flex-shrink: 0; }
+        .notif-controls form { margin: 0; }
+        .notif-mini {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.35rem 0.55rem;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            color: #374151;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .notif-mini:hover { background: #f9fafb; border-color: #d1d5db; }
+        .notif-mini--danger { border-color: #fecaca; color: #b91c1c; }
+        .notif-mini--danger:hover { background: #fef2f2; border-color: #fca5a5; }
+        .flash { padding: 0.75rem 1rem; border-radius: 12px; margin-bottom: 1rem; font-size: 0.9rem; }
+        .flash-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
         .page-footer { text-align: right; padding: 1rem 0; margin-top: 2rem; font-size: 0.8rem; color: #9ca3af; }
     </style>
 </head>
@@ -483,18 +554,45 @@ try {
                     <div class="notif-dropdown" id="notifDropdown" aria-hidden="true">
                         <div class="notif-dropdown-header">Notifications</div>
                         <div class="notif-dropdown-body">
+                            <?php if ($msg === 'notif_error'): ?>
+                                <div class="flash flash-error">Could not update notifications. Please try again.</div>
+                            <?php endif; ?>
                             <?php if (empty($notifications)): ?>
                                 <p class="notif-empty">No notifications yet.</p>
                             <?php else: ?>
+                                <div class="notif-actions">
+                                    <form method="post">
+                                        <input type="hidden" name="action" value="mark_all_read">
+                                        <button type="submit" class="notif-btn">Mark all read</button>
+                                    </form>
+                                    <form method="post" onsubmit="return confirm('Clear all notifications?');">
+                                        <input type="hidden" name="action" value="clear_all">
+                                        <button type="submit" class="notif-btn notif-btn--danger">Clear all</button>
+                                    </form>
+                                </div>
                                 <div class="notif-list">
                                     <?php foreach ($notifications as $n): ?>
-                                        <a href="markNotificationRead.php?id=<?php echo (int) $n['id']; ?>&to=dashboard.php" class="notif-item <?php echo (int) $n['is_read'] === 0 ? 'unread' : ''; ?>">
-                                            <div>
+                                        <div class="notif-row <?php echo (int) $n['is_read'] === 0 ? 'unread' : ''; ?>">
+                                            <div class="notif-content">
                                                 <div class="title"><?php echo htmlspecialchars($n['title']); ?></div>
                                                 <div class="msg"><?php echo htmlspecialchars($n['message'] ?? ''); ?></div>
                                                 <div class="time"><?php echo date('d M Y, H:i', strtotime($n['created_at'])); ?></div>
                                             </div>
-                                        </a>
+                                            <div class="notif-controls">
+                                                <?php if ((int) $n['is_read'] === 0): ?>
+                                                    <form method="post">
+                                                        <input type="hidden" name="action" value="mark_read">
+                                                        <input type="hidden" name="notification_id" value="<?php echo (int) $n['id']; ?>">
+                                                        <button type="submit" class="notif-mini" title="Mark as read">Read</button>
+                                                    </form>
+                                                <?php endif; ?>
+                                                <form method="post" onsubmit="return confirm('Clear this notification?');">
+                                                    <input type="hidden" name="action" value="clear">
+                                                    <input type="hidden" name="notification_id" value="<?php echo (int) $n['id']; ?>">
+                                                    <button type="submit" class="notif-mini notif-mini--danger" title="Clear notification">Clear</button>
+                                                </form>
+                                            </div>
+                                        </div>
                                     <?php endforeach; ?>
                                 </div>
                                 <p style="margin:0.75rem 0.5rem 0"><a href="history.php" style="color:#4f46e5;font-size:0.875rem;font-weight:500">View history →</a></p>
