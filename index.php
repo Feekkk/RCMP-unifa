@@ -424,15 +424,6 @@
                 <img src="public/official-logo.png" alt="UniKL RCMP logo" class="logo-mark">
             </span>
             <div class="header-right">
-                <nav>
-                    <button class="nav-trigger" type="button" aria-expanded="false" aria-haspopup="true">— services</button>
-                    <div class="nav-dropdown" role="menu">
-                        <a href="#" role="menuitem">Financial Aid</a>
-                        <a href="#" role="menuitem">Scholarships</a>
-                        <a href="#" role="menuitem">Loans &amp; Bursaries</a>
-                        <a href="#" role="menuitem">Application Status</a>
-                    </div>
-                </nav>
                 <div class="auth-actions">
                     <a href="auth/login.php" class="auth-link auth-link--ghost">Login</a>
                     <a href="auth/register.php" class="auth-link auth-link--solid">Register</a>
