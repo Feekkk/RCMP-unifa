@@ -446,7 +446,7 @@
             </div>
             <div class="hero-right">
                 <p class="hero-details">Empowering UniKL students to achieve their academic dreams through comprehensive financial support.</p>
-                <a href="#" class="cta">Get Started</a>
+                <a href="auth/login.php" class="cta">Get Started</a>
             </div>
         </main>
 
