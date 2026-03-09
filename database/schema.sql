@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Staff table (admin=1, committee=2)
+-- Staff table (admin=1, committee=2, ceo=3)
 CREATE TABLE IF NOT EXISTS staff (
     id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     staff_id      VARCHAR(255) NOT NULL UNIQUE,
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS staff (
     email         VARCHAR(255) NOT NULL UNIQUE,
     phone         VARCHAR(50)  NULL,
     password_hash VARCHAR(255) NOT NULL,
-    role          TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '1=admin, 2=committee',
+    role          TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '1=admin, 2=committee, 3=ceo',
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
