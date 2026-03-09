@@ -10,68 +10,75 @@ if (empty($_SESSION['admin_id']) && ($_SESSION['user_role'] ?? '') !== 'admin') 
 $adminName = $_SESSION['user_name'] ?? 'Staff';
 $search = trim((string) ($_GET['search'] ?? ''));
 $perPage = 10;
+$selectedStatus = (int) ($_GET['status'] ?? 0); // 0 = recent (all statuses)
+$page = max(1, (int) ($_GET['page'] ?? 1));
 
-$applicationsByStatus = [];
+$applications = [];
+$total = 0;
 $totalsByStatus = [];
-$currentPages = [];
 $dbError = '';
 
 $statusRows = [
     ['id' => 1, 'name' => 'pending'],
     ['id' => 2, 'name' => 'under_review'],
+    ['id' => 6, 'name' => 'committee_approved'],
     ['id' => 3, 'name' => 'approved'],
     ['id' => 4, 'name' => 'rejected'],
     ['id' => 5, 'name' => 'disbursed'],
 ];
 
 try {
-    $stmt = $pdo->query("
-        SELECT a.id, a.user_id, a.category, a.subtype, a.amount_applied, a.status_id, a.created_at,
-               COALESCE(u.full_name, 'Unknown') AS full_name,
-               COALESCE(u.course, '') AS course
-        FROM applications a
-        LEFT JOIN users u ON u.id = a.user_id
-        ORDER BY a.status_id, a.created_at DESC
-    ");
-    $allApps = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    $allApps = [];
-    $dbError = $e->getMessage();
-}
+    $counts = $pdo->query('SELECT status_id, COUNT(*) AS cnt FROM applications GROUP BY status_id')->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($counts as $r) $totalsByStatus[(int) $r['status_id']] = (int) $r['cnt'];
 
-$grouped = [];
-foreach ($allApps as $row) {
-    if ($search !== '') {
-        $match = (stripos($row['full_name'] ?? '', $search) !== false)
-            || (ctype_digit($search) && (int) $row['user_id'] === (int) $search);
-        if (!$match) continue;
+    $where = [];
+    $params = [];
+    if ($selectedStatus > 0) {
+        $where[] = 'a.status_id = ?';
+        $params[] = $selectedStatus;
     }
-    $sid = (int) $row['status_id'];
-    if (!isset($grouped[$sid])) $grouped[$sid] = [];
-    $grouped[$sid][] = $row;
-}
+    if ($search !== '') {
+        $where[] = '(u.full_name LIKE ? OR (ctype_digit(?) AND a.user_id = ?))';
+        $params[] = '%' . $search . '%';
+        $params[] = $search;
+        $params[] = ctype_digit($search) ? (int) $search : 0;
+    }
+    $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
 
-foreach ($statusRows as $s) {
-    $sid = (int) $s['id'];
-    $list = $grouped[$sid] ?? [];
-    $total = count($list);
-    $totalsByStatus[$sid] = $total;
-    $maxPage = max(1, (int) ceil($total / $perPage));
-    $page = max(1, min($maxPage, (int) ($_GET['page_' . $sid] ?? 1)));
-    $currentPages[$sid] = $page;
+    $countSql = "SELECT COUNT(*)
+                 FROM applications a
+                 LEFT JOIN users u ON u.id = a.user_id
+                 $whereSql";
+    $stmt = $pdo->prepare($countSql);
+    $stmt->execute($params);
+    $total = (int) $stmt->fetchColumn();
+
     $offset = ($page - 1) * $perPage;
-    $applicationsByStatus[$sid] = array_slice($list, $offset, $perPage);
+    $listSql = "SELECT a.id, a.user_id, a.category, a.subtype, a.amount_applied, a.status_id, a.created_at,
+                       COALESCE(u.full_name, 'Unknown') AS full_name,
+                       COALESCE(u.course, '') AS course
+                FROM applications a
+                LEFT JOIN users u ON u.id = a.user_id
+                $whereSql
+                ORDER BY a.created_at DESC
+                LIMIT $perPage OFFSET $offset";
+    $stmt = $pdo->prepare($listSql);
+    $stmt->execute($params);
+    $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $applications = [];
+    $total = 0;
+    $totalsByStatus = [];
+    $dbError = $e->getMessage();
 }
 
 function status_label($name) {
     return ucwords(str_replace('_', ' ', (string) $name));
 }
 
-function build_page_url(int $statusId, int $page, string $search, array $currentPages, array $statusIds): string {
-    $p = [];
-    foreach ($statusIds as $sid) {
-        $p['page_' . $sid] = ($sid === $statusId) ? $page : ($currentPages[$sid] ?? 1);
-    }
+function build_list_url(int $status, int $page, string $search): string {
+    $p = ['page' => $page];
+    if ($status > 0) $p['status'] = $status;
     if ($search !== '') $p['search'] = $search;
     return 'application.php?' . http_build_query($p);
 }
@@ -111,11 +118,15 @@ function build_page_url(int $statusId, int $page, string $search, array $current
         .user-menu a:hover { color: #111827; }
         .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .status-card { border-radius: 18px; padding: 1.1rem 1.25rem; background: #fff; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        a.status-card { text-decoration: none; color: inherit; transition: transform 0.08s, box-shadow 0.15s; }
+        a.status-card:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+        a.status-card.active { outline: 2px solid rgba(79, 70, 229, 0.35); }
         .status-card-title { font-size: 0.9rem; color: #4b5563; margin-bottom: 0.25rem; }
         .status-card-count { font-size: 1.6rem; font-weight: 700; color: #111827; }
         .status-pill { font-size: 0.75rem; padding: 0.15rem 0.6rem; border-radius: 999px; border: 1px solid #e5e7eb; color: #6b7280; background: #f9fafb; }
         .status-card--pending { border-color: #fbbf24; background: #fffbeb; }
         .status-card--under_review { border-color: #3b82f6; background: #eff6ff; }
+        .status-card--committee_approved { border-color: #a855f7; background: #faf5ff; }
         .status-card--approved { border-color: #22c55e; background: #ecfdf5; }
         .status-card--rejected { border-color: #f97373; background: #fef2f2; }
         .status-card--disbursed { border-color: #6366f1; background: #eef2ff; }
@@ -137,6 +148,7 @@ function build_page_url(int $statusId, int $page, string $search, array $current
         .badge-status { display: inline-flex; align-items: center; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.75rem; }
         .badge-status--pending { background: #fffbeb; color: #92400e; }
         .badge-status--under_review { background: #eff6ff; color: #1d4ed8; }
+        .badge-status--committee_approved { background: #faf5ff; color: #6b21a8; }
         .badge-status--approved { background: #ecfdf5; color: #166534; }
         .badge-status--rejected { background: #fef2f2; color: #b91c1c; }
         .badge-status--disbursed { background: #eef2ff; color: #3730a3; }
@@ -204,20 +216,33 @@ function build_page_url(int $statusId, int $page, string $search, array $current
             <?php endif; ?>
 
             <section class="status-grid">
+                <?php
+                    $recentCount = 0;
+                    foreach ($totalsByStatus as $c) $recentCount += (int) $c;
+                    $recentActive = $selectedStatus <= 0;
+                ?>
+                <a class="status-card status-card--disbursed <?php echo $recentActive ? 'active' : ''; ?>" href="<?php echo htmlspecialchars(build_list_url(0, 1, $search)); ?>">
+                    <div>
+                        <div class="status-card-title">Recent</div>
+                        <div class="status-card-count"><?php echo $recentCount; ?></div>
+                    </div>
+                    <span class="status-pill"><?php echo $recentCount === 1 ? '1 application' : $recentCount . ' applications'; ?></span>
+                </a>
                 <?php foreach ($statusRows as $s): ?>
                     <?php
                         $sid = (int) ($s['id'] ?? 0);
                         $name = (string) ($s['name'] ?? '');
                         $cssKey = str_replace(' ', '_', $name);
                         $count = (int) ($totalsByStatus[$sid] ?? 0);
+                        $active = $selectedStatus === $sid;
                     ?>
-                    <div class="status-card <?php echo 'status-card--' . htmlspecialchars($cssKey); ?>">
+                    <a class="status-card <?php echo 'status-card--' . htmlspecialchars($cssKey); ?> <?php echo $active ? 'active' : ''; ?>" href="<?php echo htmlspecialchars(build_list_url($sid, 1, $search)); ?>">
                         <div>
                             <div class="status-card-title"><?php echo htmlspecialchars(status_label($name)); ?></div>
                             <div class="status-card-count"><?php echo $count; ?></div>
                         </div>
                         <span class="status-pill"><?php echo $count === 1 ? '1 application' : $count . ' applications'; ?></span>
-                    </div>
+                    </a>
                 <?php endforeach; ?>
                 <?php if (empty($statusRows)): ?>
                     <div class="status-card">
@@ -230,112 +255,91 @@ function build_page_url(int $statusId, int $page, string $search, array $current
                 <?php endif; ?>
             </section>
 
-            <?php $statusIds = array_map(function($x) { return (int)($x['id'] ?? 0); }, $statusRows); ?>
-
             <form method="get" action="application.php" class="search-bar">
+                <?php if ($selectedStatus > 0): ?>
+                    <input type="hidden" name="status" value="<?php echo $selectedStatus; ?>">
+                <?php endif; ?>
                 <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search by student name or ID...">
                 <button type="submit">Search</button>
                 <?php if ($search !== ''): ?>
-                    <a href="application.php" class="btn-clear" style="padding:0.6rem 1.25rem;border-radius:10px;font-size:0.9rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;">Clear</a>
+                    <a href="<?php echo htmlspecialchars(build_list_url($selectedStatus, 1, '')); ?>" class="btn-clear" style="padding:0.6rem 1.25rem;border-radius:10px;font-size:0.9rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;">Clear</a>
                 <?php endif; ?>
             </form>
 
-            <?php foreach ($statusRows as $s): ?>
-                <?php
-                    $sid = (int) $s['id'];
-                    $name = (string) ($s['name'] ?? '');
-                    $apps = $applicationsByStatus[$sid] ?? [];
-                    $total = $totalsByStatus[$sid] ?? 0;
-                    $page = $currentPages[$sid] ?? 1;
-                    $maxPage = max(1, (int) ceil($total / $perPage));
-                    $badgeKey = str_replace(' ', '_', $name);
-                ?>
-                <section class="status-section">
-                    <h2><?php echo htmlspecialchars(status_label($name)); ?></h2>
-                    <p class="status-section-sub">
-                        <?php echo $total; ?> student <?php echo $total === 1 ? 'application' : 'applications'; ?> in this status<?php echo $search !== '' ? ' (filtered)' : ''; ?>.
-                    </p>
-                    <div class="table-wrap">
-                        <?php if (empty($apps)): ?>
-                            <div class="empty-row"><?php echo $search !== '' ? 'No matching applications.' : 'No applications in this status yet.'; ?></div>
-                        <?php else: ?>
-                            <table>
-                                <thead>
+            <?php
+                $title = $selectedStatus <= 0 ? 'Recent applications' : status_label(array_values(array_filter($statusRows, fn($x) => (int)($x['id'] ?? 0) === $selectedStatus))[0]['name'] ?? 'Applications');
+                $maxPage = max(1, (int) ceil($total / $perPage));
+            ?>
+            <section class="status-section">
+                <h2><?php echo htmlspecialchars($title); ?></h2>
+                <p class="status-section-sub">
+                    <?php echo $total; ?> <?php echo $total === 1 ? 'application' : 'applications'; ?><?php echo $search !== '' ? ' (filtered)' : ''; ?>.
+                </p>
+                <div class="table-wrap">
+                    <?php if (empty($applications)): ?>
+                        <div class="empty-row"><?php echo $search !== '' ? 'No matching applications.' : 'No applications found.'; ?></div>
+                    <?php else: ?>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>App ID</th>
+                                    <th class="col-student">Student</th>
+                                    <th>Matric / Course</th>
+                                    <th class="col-category">Category</th>
+                                    <th>Subtype</th>
+                                    <th>Status</th>
+                                    <th class="col-amount" style="text-align:right">Amount (RM)</th>
+                                    <th class="col-date">Submitted at</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($applications as $app): ?>
+                                    <?php
+                                        $sid = (int) ($app['status_id'] ?? 0);
+                                        $statusName = '';
+                                        foreach ($statusRows as $sr) { if ((int) $sr['id'] === $sid) { $statusName = (string) ($sr['name'] ?? ''); break; } }
+                                        $badgeKey = str_replace(' ', '_', $statusName);
+                                    ?>
                                     <tr>
-                                        <th>ID</th>
-                                        <th class="col-student">Student</th>
-                                        <th>Matric / Course</th>
-                                        <th class="col-category">Category</th>
-                                        <th>Subtype</th>
-                                        <th class="col-amount" style="text-align:right">Amount (RM)</th>
-                                        <th class="col-date">Submitted at</th>
-                                        <th>Action</th>
+                                        <td>#<?php echo (int) ($app['id'] ?? 0); ?></td>
+                                        <td class="col-student"><?php echo htmlspecialchars($app['full_name'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars(trim((string) ($app['course'] ?? '')) ?: '-'); ?></td>
+                                        <td class="col-category"><?php echo htmlspecialchars(ucwords((string) ($app['category'] ?? ''))); ?></td>
+                                        <td><?php echo htmlspecialchars(ucwords(str_replace('_', ' ', (string) ($app['subtype'] ?? '')))); ?></td>
+                                        <td><span class="badge-status <?php echo $badgeKey !== '' ? 'badge-status--' . htmlspecialchars($badgeKey) : ''; ?>"><?php echo htmlspecialchars($statusName !== '' ? status_label($statusName) : '—'); ?></span></td>
+                                        <td class="col-amount amount"><?php echo $app['amount_applied'] !== null ? number_format((float) $app['amount_applied'], 2) : '-'; ?></td>
+                                        <td class="col-date"><?php echo $app['created_at'] ? htmlspecialchars(date('d M Y, H:i', strtotime($app['created_at']))) : '-'; ?></td>
+                                        <td><a href="viewApplication.php?id=<?php echo (int) ($app['id'] ?? 0); ?>" class="btn-view">View</a></td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($apps as $app): ?>
-                                        <tr>
-                                            <td><?php echo (int) ($app['user_id'] ?? 0); ?></td>
-                                            <td class="col-student">
-                                                <?php echo htmlspecialchars($app['full_name'] ?? ''); ?>
-                                            </td>
-                                            <td>
-                                                <?php
-                                                    $course = trim((string) ($app['course'] ?? ''));
-                                                    echo $course !== '' ? htmlspecialchars($course) : '-';
-                                                ?>
-                                            </td>
-                                            <td class="col-category">
-                                                <?php echo htmlspecialchars(ucwords((string) ($app['category'] ?? ''))); ?>
-                                            </td>
-                                            <td>
-                                                <?php echo htmlspecialchars(ucwords(str_replace('_', ' ', (string) ($app['subtype'] ?? '')))); ?>
-                                            </td>
-                                            <td class="col-amount amount">
-                                                <?php
-                                                    $amt = $app['amount_applied'];
-                                                    echo $amt !== null ? number_format((float) $amt, 2) : '-';
-                                                ?>
-                                            </td>
-                                            <td class="col-date">
-                                                <?php
-                                                    $dt = $app['created_at'] ?? null;
-                                                    echo $dt ? htmlspecialchars(date('d M Y, H:i', strtotime($dt))) : '-';
-                                                ?>
-                                            </td>
-                                            <td>
-                                                <a href="viewApplication.php?id=<?php echo (int) ($app['id'] ?? 0); ?>" class="btn-view">View</a>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                            <?php if ($maxPage > 1): ?>
-                                <div class="pagination-info">Showing <?php echo ($page - 1) * $perPage + 1; ?>–<?php echo min($page * $perPage, $total); ?> of <?php echo $total; ?></div>
-                                <div class="pagination">
-                                    <?php if ($page > 1): ?>
-                                        <a href="<?php echo htmlspecialchars(build_page_url($sid, $page - 1, $search, $currentPages, $statusIds)); ?>">Prev</a>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                        <?php if ($maxPage > 1): ?>
+                            <div class="pagination-info">Showing <?php echo ($page - 1) * $perPage + 1; ?>–<?php echo min($page * $perPage, $total); ?> of <?php echo $total; ?></div>
+                            <div class="pagination">
+                                <?php if ($page > 1): ?>
+                                    <a href="<?php echo htmlspecialchars(build_list_url($selectedStatus, $page - 1, $search)); ?>">Prev</a>
+                                <?php else: ?>
+                                    <span class="disabled">Prev</span>
+                                <?php endif; ?>
+                                <?php for ($i = 1; $i <= $maxPage; $i++): ?>
+                                    <?php if ($i === $page): ?>
+                                        <span class="active"><?php echo $i; ?></span>
                                     <?php else: ?>
-                                        <span class="disabled">Prev</span>
+                                        <a href="<?php echo htmlspecialchars(build_list_url($selectedStatus, $i, $search)); ?>"><?php echo $i; ?></a>
                                     <?php endif; ?>
-                                    <?php for ($i = 1; $i <= $maxPage; $i++): ?>
-                                        <?php if ($i === $page): ?>
-                                            <span class="active"><?php echo $i; ?></span>
-                                        <?php else: ?>
-                                            <a href="<?php echo htmlspecialchars(build_page_url($sid, $i, $search, $currentPages, $statusIds)); ?>"><?php echo $i; ?></a>
-                                        <?php endif; ?>
-                                    <?php endfor; ?>
-                                    <?php if ($page < $maxPage): ?>
-                                        <a href="<?php echo htmlspecialchars(build_page_url($sid, $page + 1, $search, $currentPages, $statusIds)); ?>">Next</a>
-                                    <?php else: ?>
-                                        <span class="disabled">Next</span>
-                                    <?php endif; ?>
-                                </div>
-                            <?php endif; ?>
+                                <?php endfor; ?>
+                                <?php if ($page < $maxPage): ?>
+                                    <a href="<?php echo htmlspecialchars(build_list_url($selectedStatus, $page + 1, $search)); ?>">Next</a>
+                                <?php else: ?>
+                                    <span class="disabled">Next</span>
+                                <?php endif; ?>
+                            </div>
                         <?php endif; ?>
-                    </div>
-                </section>
-            <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </section>
 
             <footer class="page-footer">© University Kuala Lumpur Royal College of Medicine Perak</footer>
         </div>
