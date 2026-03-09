@@ -8,12 +8,60 @@ if (empty($_SESSION['ceo_id']) && ($_SESSION['user_role'] ?? '') !== 'ceo') {
 }
 
 $ceoName = $_SESSION['user_name'] ?? 'CEO';
+$ceoId = (int) ($_SESSION['ceo_id'] ?? 0);
 $search = trim((string) ($_GET['search'] ?? ''));
 $perPage = 10;
 $applications = [];
 $total = 0;
 $page = max(1, (int) ($_GET['page'] ?? 1));
 $dbError = '';
+$msg = $_GET['m'] ?? '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = (string) ($_POST['action'] ?? '');
+    $ids = $_POST['app_ids'] ?? [];
+    if ($action === 'bulk_approve' && is_array($ids) && !empty($ids)) {
+        $cleanIds = [];
+        foreach ($ids as $id) {
+            $id = (int) $id;
+            if ($id > 0) $cleanIds[$id] = true;
+        }
+        $cleanIds = array_keys($cleanIds);
+        if (!empty($cleanIds)) {
+            try {
+                $pdo->beginTransaction();
+                $placeholders = implode(',', array_fill(0, count($cleanIds), '?'));
+
+                // Lock rows that are still pending CEO approval
+                $stmt = $pdo->prepare("SELECT id FROM applications WHERE status_id = 6 AND id IN ($placeholders) FOR UPDATE");
+                $stmt->execute($cleanIds);
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $okIds = array_map(fn($r) => (int) $r['id'], $rows);
+
+                if (!empty($okIds)) {
+                    $ph2 = implode(',', array_fill(0, count($okIds), '?'));
+                    $stmt = $pdo->prepare("UPDATE applications SET status_id = 3 WHERE status_id = 6 AND id IN ($ph2)");
+                    $stmt->execute($okIds);
+
+                    $hist = $pdo->prepare('INSERT INTO application_history (application_id, from_status_id, to_status_id, staff_id, action, notes) VALUES (?, 6, 3, ?, ?, NULL)');
+                    foreach ($okIds as $appId) {
+                        $hist->execute([(int) $appId, $ceoId ?: null, 'ceo_approve']);
+                    }
+                }
+
+                $pdo->commit();
+                header('Location: application.php?m=approved');
+                exit;
+            } catch (PDOException $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                header('Location: application.php?m=error');
+                exit;
+            }
+        }
+    }
+    header('Location: application.php');
+    exit;
+}
 
 try {
     $sql = "
@@ -88,10 +136,24 @@ function fmtCategory($c) {
         .search-bar button { padding: 0.6rem 1.25rem; border-radius: 10px; background: #0f1419; color: #fff; font-size: 0.9rem; font-weight: 600; border: none; cursor: pointer; }
         .search-bar .btn-clear { padding: 0.6rem 1.25rem; border-radius: 10px; font-size: 0.9rem; font-weight: 600; text-decoration: none; background: #e5e7eb; color: #374151; display: inline-flex; align-items: center; }
         .search-bar .btn-clear:hover { background: #d1d5db; }
+        .bulk-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+        .bulk-left { display: flex; align-items: center; gap: 0.75rem; color: #374151; font-size: 0.85rem; }
+        .bulk-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .btn-approve { padding: 0.55rem 1rem; border-radius: 10px; background: #166534; color: #fff; font-size: 0.9rem; font-weight: 700; border: none; cursor: pointer; }
+        .btn-approve:hover { background: #15803d; }
+        .btn-approve:disabled { opacity: 0.55; cursor: not-allowed; }
+        .btn-ghost { padding: 0.55rem 1rem; border-radius: 10px; background: #e5e7eb; color: #374151; font-size: 0.9rem; font-weight: 700; border: none; cursor: pointer; }
+        .btn-ghost:hover { background: #d1d5db; }
+        .check { width: 16px; height: 16px; accent-color: #4f46e5; }
+        .selected-pill { font-size: 0.78rem; font-weight: 700; color: #4f46e5; background: rgba(79, 70, 229, 0.10); border: 1px solid rgba(79, 70, 229, 0.22); padding: 0.2rem 0.55rem; border-radius: 999px; }
+        .flash { padding: 0.75rem 1rem; border-radius: 12px; margin-bottom: 1rem; font-size: 0.9rem; }
+        .flash-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .flash-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
         .table-wrap { border-radius: 14px; border: 1px solid #e5e7eb; background: #fff; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         thead { background: #f9fafb; }
         th, td { padding: 0.6rem 0.9rem; text-align: left; white-space: nowrap; }
+        th.col-check, td.col-check { width: 44px; padding-left: 0.75rem; padding-right: 0.5rem; }
         th { font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
         tbody tr:nth-child(even) { background: #f9fafb; }
         tbody tr:hover { background: #eef2ff; }
@@ -148,6 +210,9 @@ function fmtCategory($c) {
                 <div style="padding:1rem;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;margin-bottom:1.5rem;color:#b91c1c;font-size:0.9rem;">Database error: <?php echo htmlspecialchars($dbError); ?></div>
             <?php endif; ?>
 
+            <?php if ($msg === 'approved'): ?><div class="flash flash-success">Selected applications approved.</div><?php endif; ?>
+            <?php if ($msg === 'error'): ?><div class="flash flash-error">Could not approve. Please try again.</div><?php endif; ?>
+
             <form method="get" action="application.php" class="search-bar">
                 <input type="hidden" name="page" value="1">
                 <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search by student name or course...">
@@ -159,9 +224,25 @@ function fmtCategory($c) {
                 <?php if (empty($applications)): ?>
                     <div class="empty-row"><?php echo $search !== '' ? 'No matching applications.' : 'No applications pending CEO approval.'; ?></div>
                 <?php else: ?>
+                    <form method="post" id="bulkApproveForm" onsubmit="return confirm('Approve selected applications?');">
+                        <input type="hidden" name="action" value="bulk_approve">
+                        <div class="bulk-bar" style="padding:0.85rem 0.9rem;border-bottom:1px solid #e5e7eb;background:linear-gradient(180deg,#ffffff 0%, #fafafa 100%);">
+                            <div class="bulk-left">
+                                <label style="display:inline-flex;align-items:center;gap:0.55rem;cursor:pointer;">
+                                    <input type="checkbox" id="selectAll" class="check">
+                                    Select all
+                                </label>
+                                <span id="selectedCount" class="selected-pill">0 selected</span>
+                            </div>
+                            <div class="bulk-actions">
+                                <button type="button" class="btn-ghost" id="clearSelection">Clear</button>
+                                <button type="submit" class="btn-approve" id="approveSelected" disabled>Approve selected</button>
+                            </div>
+                        </div>
                     <table>
                         <thead>
                             <tr>
+                                <th class="col-check"><input type="checkbox" class="check" id="selectAllTop" aria-label="Select all"></th>
                                 <th>Ref</th>
                                 <th class="col-student">Student</th>
                                 <th>Course</th>
@@ -175,6 +256,7 @@ function fmtCategory($c) {
                         <tbody>
                             <?php foreach ($applications as $app): ?>
                                 <tr>
+                                    <td class="col-check"><input type="checkbox" class="rowCheck check" name="app_ids[]" value="<?php echo (int) $app['id']; ?>"></td>
                                     <td>#<?php echo (int) $app['id']; ?></td>
                                     <td class="col-student"><?php echo htmlspecialchars($app['full_name'] ?? ''); ?></td>
                                     <td><?php echo htmlspecialchars(trim($app['course'] ?? '') ?: '-'); ?></td>
@@ -187,6 +269,7 @@ function fmtCategory($c) {
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                    </form>
                     <?php if ($maxPage > 1): ?>
                         <div class="pagination-info">Showing <?php echo $offset + 1; ?>–<?php echo min($offset + $perPage, $total); ?> of <?php echo $total; ?></div>
                         <div class="pagination">
@@ -207,5 +290,43 @@ function fmtCategory($c) {
             <footer class="page-footer">© University Kuala Lumpur Royal College of Medicine Perak</footer>
         </div>
     </div>
+<script>
+(function () {
+    var selectAll = document.getElementById('selectAll');
+    var selectAllTop = document.getElementById('selectAllTop');
+    var checks = Array.prototype.slice.call(document.querySelectorAll('.rowCheck'));
+    var selectedCount = document.getElementById('selectedCount');
+    var approveBtn = document.getElementById('approveSelected');
+    var clearBtn = document.getElementById('clearSelection');
+    if (!selectAll || !selectAllTop || checks.length === 0 || !selectedCount || !approveBtn || !clearBtn) return;
+
+    function refresh() {
+        var selected = checks.filter(function (c) { return c.checked; }).length;
+        selectedCount.textContent = selected + ' selected';
+        approveBtn.disabled = selected === 0;
+        selectAll.checked = selected > 0 && selected === checks.length;
+        selectAll.indeterminate = selected > 0 && selected < checks.length;
+        selectAllTop.checked = selectAll.checked;
+        selectAllTop.indeterminate = selectAll.indeterminate;
+    }
+
+    function handleSelectAll(checked) {
+        checks.forEach(function (c) { c.checked = checked; });
+        refresh();
+    }
+
+    selectAll.addEventListener('change', function () { handleSelectAll(selectAll.checked); });
+    selectAllTop.addEventListener('change', function () { handleSelectAll(selectAllTop.checked); });
+
+    checks.forEach(function (c) { c.addEventListener('change', refresh); });
+
+    clearBtn.addEventListener('click', function () {
+        checks.forEach(function (c) { c.checked = false; });
+        refresh();
+    });
+
+    refresh();
+})();
+</script>
 </body>
 </html>
