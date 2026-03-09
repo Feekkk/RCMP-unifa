@@ -386,20 +386,83 @@
             padding-top: 3rem;
             border-top: 1px solid rgba(255,255,255,0.08);
         }
+        .funding-wrap {
+            position: relative;
+            border-radius: 1.4rem;
+            background: radial-gradient(circle at top left, rgba(255,255,255,0.11), rgba(10,14,20,0.93));
+            border: 1px solid rgba(255,255,255,0.14);
+            overflow: hidden;
+            padding: 2.2rem 2.2rem 2.1rem;
+        }
         .funding-header {
             max-width: 520px;
             margin-bottom: 2rem;
         }
         .funding-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 1.4rem;
         }
         .funding-card {
-            padding: 1.1rem 1.2rem;
-            border-radius: 1rem;
-            background: linear-gradient(150deg, rgba(255,255,255,0.10), rgba(10,14,20,0.9));
-            border: 1px solid rgba(255,255,255,0.12);
+            position: relative;
+            padding: 1.2rem 1.25rem 1.25rem;
+            border-radius: 1.2rem;
+            background: linear-gradient(155deg, rgba(255,255,255,0.12), rgba(10,14,20,0.92));
+            border: 1px solid rgba(255,255,255,0.14);
+            overflow: hidden;
+        }
+        .funding-card::after {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: 1.2rem;
+            background: radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 60%);
+            pointer-events: none;
+            opacity: 0.85;
+        }
+        .funding-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.38rem 0.7rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.86);
+            font-size: 0.78rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin-bottom: 0.85rem;
+        }
+        .funding-price {
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+            margin-bottom: 0.35rem;
+        }
+        .funding-currency {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.9);
+            letter-spacing: 0.08em;
+        }
+        .funding-amount {
+            font-size: 2.1rem;
+            font-weight: 750;
+            letter-spacing: -0.02em;
+        }
+        .funding-period {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.78);
+            margin-bottom: 0.95rem;
+        }
+        .funding-card--primary {
+            border-color: rgba(255,255,255,0.22);
+            background: linear-gradient(155deg, rgba(255,255,255,0.14), rgba(45, 71, 112, 0.25), rgba(10,14,20,0.92));
+        }
+        .funding-card--primary .funding-pill {
+            border-color: rgba(255,255,255,0.24);
+            background: rgba(185, 210, 255, 0.10);
         }
         .funding-title {
             font-size: 0.95rem;
@@ -640,6 +703,9 @@
             .section-funding {
                 margin-top: 3rem;
             }
+            .funding-wrap {
+                padding: 1.8rem 1.5rem 1.6rem;
+            }
             .funding-grid {
                 grid-template-columns: minmax(0, 1fr);
             }
@@ -742,20 +808,32 @@
         </section>
 
         <section class="section-funding">
-            <div class="funding-header">
-                <div class="section-eyebrow">Funding</div>
-                <h2 class="section-title">Student Contribution SWF</h2>
-                <p class="section-body">The fund collection is based on SWF fees collected from registered students.</p>
-            </div>
-            <div class="funding-grid">
-                <article class="funding-card">
-                    <h3 class="funding-title">Local student</h3>
-                    <p class="funding-body">Fee is <strong>RM30.00</strong> every semester.</p>
-                </article>
-                <article class="funding-card">
-                    <h3 class="funding-title">International student</h3>
-                    <p class="funding-body">Fee is <strong>RM50.00</strong> every semester.</p>
-                </article>
+            <div class="funding-wrap">
+                <div class="funding-header">
+                    <div class="section-eyebrow">Funding</div>
+                    <h2 class="section-title">Student Contribution SWF</h2>
+                    <p class="section-body">The fund collection is based on SWF fees collected from registered students.</p>
+                </div>
+                <div class="funding-grid">
+                    <article class="funding-card funding-card--primary">
+                        <div class="funding-pill">Local student</div>
+                        <div class="funding-price">
+                            <span class="funding-currency">RM</span>
+                            <span class="funding-amount">30.00</span>
+                        </div>
+                        <div class="funding-period">Every semester</div>
+                        <p class="funding-body">SWF fee collected from registered local students each semester.</p>
+                    </article>
+                    <article class="funding-card">
+                        <div class="funding-pill">International student</div>
+                        <div class="funding-price">
+                            <span class="funding-currency">RM</span>
+                            <span class="funding-amount">50.00</span>
+                        </div>
+                        <div class="funding-period">Every semester</div>
+                        <p class="funding-body">SWF fee collected from registered international students each semester.</p>
+                    </article>
+                </div>
             </div>
         </section>
 
