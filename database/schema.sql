@@ -97,3 +97,53 @@ CREATE TABLE IF NOT EXISTS application_history (
     FOREIGN KEY (from_status_id) REFERENCES status(id) ON DELETE SET NULL,
     FOREIGN KEY (to_status_id) REFERENCES status(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS notification (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id         INT UNSIGNED NOT NULL,
+    application_id  INT UNSIGNED NULL,
+    type            VARCHAR(50)  NOT NULL COMMENT 'status_change, receipt_uploaded',
+    title           VARCHAR(255) NOT NULL,
+    message         TEXT         NULL,
+    is_read         TINYINT(1)   NOT NULL DEFAULT 0,
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
+    INDEX idx_user_unread (user_id, is_read),
+    INDEX idx_user_created (user_id, created_at DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TRIGGER IF EXISTS tr_application_history_notify;
+DELIMITER //
+CREATE TRIGGER tr_application_history_notify
+AFTER INSERT ON application_history
+FOR EACH ROW
+BEGIN
+    DECLARE v_user_id INT UNSIGNED;
+    DECLARE v_title VARCHAR(255);
+    DECLARE v_message TEXT;
+
+    SELECT user_id INTO v_user_id FROM applications WHERE id = NEW.application_id LIMIT 1;
+
+    SET v_title = CASE NEW.action
+        WHEN 'submit' THEN 'Application submitted'
+        WHEN 'recommend' THEN 'Application under review'
+        WHEN 'approve' THEN 'Application approved'
+        WHEN 'reject' THEN 'Application rejected'
+        WHEN 'disburse' THEN 'Receipt available'
+        ELSE CONCAT('Application #', NEW.application_id, ' updated')
+    END;
+
+    SET v_message = CASE NEW.action
+        WHEN 'submit' THEN CONCAT('Your application #', NEW.application_id, ' has been submitted successfully.')
+        WHEN 'recommend' THEN CONCAT('Application #', NEW.application_id, ' is now under committee review.')
+        WHEN 'approve' THEN CONCAT('Application #', NEW.application_id, ' has been approved. You will receive the fund after disbursement.')
+        WHEN 'reject' THEN CONCAT('Application #', NEW.application_id, ' was rejected.', IFNULL(CONCAT(' Note: ', NEW.notes), ''))
+        WHEN 'disburse' THEN CONCAT('Application #', NEW.application_id, ' has been disbursed. You can view the receipt in View history.')
+        ELSE CONCAT('Application #', NEW.application_id, ' status was updated.')
+    END;
+
+    INSERT INTO notification (user_id, application_id, type, title, message, is_read)
+    VALUES (v_user_id, NEW.application_id, 'status_change', v_title, v_message, 0);
+END//
+DELIMITER ;
