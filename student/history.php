@@ -10,7 +10,7 @@ if (empty($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'student')
 $userId = (int) $_SESSION['user_id'];
 $applications = [];
 try {
-    $stmt = $pdo->prepare('SELECT a.id, a.category, a.subtype, a.amount_applied, a.bank_name, a.bank_account, s.name AS status, a.created_at FROM applications a LEFT JOIN status s ON a.status_id = s.id WHERE a.user_id = ? ORDER BY a.created_at DESC');
+    $stmt = $pdo->prepare('SELECT a.id, a.category, a.subtype, a.amount_applied, a.bank_name, a.bank_account, s.name AS status, a.created_at, a.receipt_path FROM applications a LEFT JOIN status s ON a.status_id = s.id WHERE a.user_id = ? ORDER BY a.created_at DESC');
     $stmt->execute([$userId]);
     $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -73,6 +73,8 @@ function formatDate($d) {
         .status-approved { background: #d1fae5; color: #065f46; }
         .status-disbursed { background: #d1fae5; color: #065f46; }
         .status-rejected { background: #fee2e2; color: #991b1b; }
+        .link-receipt { color: #4f46e5; text-decoration: none; font-weight: 500; }
+        .link-receipt:hover { text-decoration: underline; }
         .empty-state { text-align: center; padding: 3rem 2rem; color: #6b7280; font-size: 0.95rem; }
         .empty-state a { color: #4f46e5; text-decoration: none; font-weight: 500; }
         .empty-state a:hover { text-decoration: underline; }
@@ -128,6 +130,7 @@ function formatDate($d) {
                                 <th>Amount (RM)</th>
                                 <th>Status</th>
                                 <th>Submitted</th>
+                                <th>Receipt</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -148,6 +151,7 @@ function formatDate($d) {
                                     <td><?php echo $row['amount_applied'] !== null ? number_format((float) $row['amount_applied'], 2) : '—'; ?></td>
                                     <td><span class="status <?php echo $statusClass; ?>"><?php echo htmlspecialchars($row['status'] ?? 'pending'); ?></span></td>
                                     <td><?php echo formatDate($row['created_at']); ?></td>
+                                    <td><?php if (!empty($row['receipt_path'])): ?><a href="viewReceipt.php?id=<?php echo (int) $row['id']; ?>" target="_blank" rel="noopener" class="link-receipt">View receipt</a><?php else: ?>—<?php endif; ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
