@@ -22,7 +22,7 @@ try {
                COALESCE(u.course, '') AS course
         FROM applications a
         LEFT JOIN users u ON u.id = a.user_id
-        WHERE a.status_id = 3
+        WHERE a.status_id = 6
     ";
     $params = [];
     if ($search !== '') {
@@ -54,7 +54,7 @@ function fmtCategory($c) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Approved Applications — RCMP UniFa CEO</title>
+    <title>Pending Approval — RCMP UniFa CEO</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
@@ -157,7 +157,7 @@ function fmtCategory($c) {
 
             <div class="table-wrap">
                 <?php if (empty($applications)): ?>
-                    <div class="empty-row"><?php echo $search !== '' ? 'No matching approved applications.' : 'No approved applications yet.'; ?></div>
+                    <div class="empty-row"><?php echo $search !== '' ? 'No matching applications.' : 'No applications pending CEO approval.'; ?></div>
                 <?php else: ?>
                     <table>
                         <thead>
@@ -182,7 +182,7 @@ function fmtCategory($c) {
                                     <td><?php echo htmlspecialchars(ucwords(str_replace('_', ' ', $app['subtype'] ?? ''))); ?></td>
                                     <td class="col-amount amount"><?php echo $app['amount_applied'] !== null ? number_format((float) $app['amount_applied'], 2) : '-'; ?></td>
                                     <td class="col-date"><?php echo $app['created_at'] ? date('d M Y, H:i', strtotime($app['created_at'])) : '-'; ?></td>
-                                    <td><a href="../admin/viewApplication.php?id=<?php echo (int) $app['id']; ?>" class="btn-view">View</a></td>
+                                    <td><a href="viewApplication.php?id=<?php echo (int) $app['id']; ?>" class="btn-view">View</a></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
