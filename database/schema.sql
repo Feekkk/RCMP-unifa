@@ -32,7 +32,11 @@ CREATE TABLE IF NOT EXISTS staff (
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Status table (application status flow: submit -> under_review -> pending -> approved; or reject)
+-- Status table
+-- Flow: pending -> under_review (admin recommend)
+--       -> committee_approved (committee approve) -> approved (CEO approve)
+--       -> disbursed (admin upload receipt)
+-- Reject: under_review or committee_approved -> rejected
 CREATE TABLE IF NOT EXISTS status (
     id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name            VARCHAR(50)  NOT NULL UNIQUE,
@@ -42,9 +46,10 @@ CREATE TABLE IF NOT EXISTS status (
 INSERT INTO status (name, display_order) VALUES
 ('pending', 1),
 ('under_review', 2),
-('approved', 3),
-('rejected', 4),
-('disbursed', 5)
+('approved', 4),
+('rejected', 5),
+('disbursed', 6),
+('committee_approved', 3)
 ON DUPLICATE KEY UPDATE display_order = VALUES(display_order);
 
 -- Applications table (sparse columns for category-specific data)
@@ -128,7 +133,8 @@ BEGIN
     SET v_title = CASE NEW.action
         WHEN 'submit' THEN 'Application submitted'
         WHEN 'recommend' THEN 'Application under review'
-        WHEN 'approve' THEN 'Application approved'
+        WHEN 'approve' THEN 'Committee approved'
+        WHEN 'ceo_approve' THEN 'Application approved'
         WHEN 'reject' THEN 'Application rejected'
         WHEN 'disburse' THEN 'Receipt available'
         ELSE CONCAT('Application #', NEW.application_id, ' updated')
@@ -137,7 +143,8 @@ BEGIN
     SET v_message = CASE NEW.action
         WHEN 'submit' THEN CONCAT('Your application #', NEW.application_id, ' has been submitted successfully.')
         WHEN 'recommend' THEN CONCAT('Application #', NEW.application_id, ' is now under committee review.')
-        WHEN 'approve' THEN CONCAT('Application #', NEW.application_id, ' has been approved. You will receive the fund after disbursement.')
+        WHEN 'approve' THEN CONCAT('Application #', NEW.application_id, ' was approved by committee. Awaiting CEO approval.')
+        WHEN 'ceo_approve' THEN CONCAT('Application #', NEW.application_id, ' has been approved. You will receive the fund after disbursement.')
         WHEN 'reject' THEN CONCAT('Application #', NEW.application_id, ' was rejected.', IFNULL(CONCAT(' Note: ', NEW.notes), ''))
         WHEN 'disburse' THEN CONCAT('Application #', NEW.application_id, ' has been disbursed. You can view the receipt in View history.')
         ELSE CONCAT('Application #', NEW.application_id, ' status was updated.')
