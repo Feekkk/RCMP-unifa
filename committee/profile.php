@@ -10,8 +10,40 @@ if (empty($_SESSION['committee_id']) && ($_SESSION['user_role'] ?? '') !== 'comm
 $committeeId = (int) $_SESSION['committee_id'];
 $profile_success = '';
 $profile_error = '';
+$pw_success = '';
+$pw_error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pw_current'])) {
+    $pw_current = $_POST['pw_current'] ?? '';
+    $pw_new = $_POST['pw_new'] ?? '';
+    $pw_confirm = $_POST['pw_confirm'] ?? '';
+    if ($pw_current === '' || $pw_new === '' || $pw_confirm === '') {
+        $pw_error = 'All password fields are required.';
+    } elseif (strlen($pw_new) < 6) {
+        $pw_error = 'New password must be at least 6 characters.';
+    } elseif ($pw_new !== $pw_confirm) {
+        $pw_error = 'New password and confirmation do not match.';
+    } else {
+        try {
+            $stmt = $pdo->prepare('SELECT password_hash FROM staff WHERE id = ? AND role = 2 LIMIT 1');
+            $stmt->execute([$committeeId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $hash = $row['password_hash'] ?? '';
+            $pwdOk = $row && ($pw_current === (string) $hash || (strlen($hash) > 20 && password_verify($pw_current, $hash)));
+            if (!$pwdOk) {
+                $pw_error = 'Current password is incorrect.';
+            } else {
+                $newHash = password_hash($pw_new, PASSWORD_DEFAULT);
+                $pdo->prepare('UPDATE staff SET password_hash = ? WHERE id = ? AND role = 2')->execute([$newHash, $committeeId]);
+                $pw_success = 'Password changed successfully.';
+            }
+        } catch (PDOException $e) {
+            $pw_error = 'Could not update password.';
+        }
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['pw_current'])) {
     $full_name = trim($_POST['full_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
@@ -118,8 +150,7 @@ $memberSince = $user['created_at'] ? date('F Y', strtotime($user['created_at']))
             <div class="sidebar-brand"><img src="../public/official-logo.png" alt="RCMP UniFa"></div>
             <nav class="sidebar-nav">
                 <a href="dashboard.php"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>Dashboard</a>
-                <a href="applications.php"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Application</a>
-                <a href="history.php"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>History</a>
+                <a href="application.php"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Application</a>
                 <a href="profile.php" class="active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>Profile</a>
             </nav>
             <div class="sidebar-footer">
@@ -135,6 +166,8 @@ $memberSince = $user['created_at'] ? date('F Y', strtotime($user['created_at']))
 
             <?php if ($profile_success): ?><div class="alert alert-success"><?php echo htmlspecialchars($profile_success); ?></div><?php endif; ?>
             <?php if ($profile_error): ?><div class="alert alert-error"><?php echo htmlspecialchars($profile_error); ?></div><?php endif; ?>
+            <?php if ($pw_success): ?><div class="alert alert-success"><?php echo htmlspecialchars($pw_success); ?></div><?php endif; ?>
+            <?php if ($pw_error): ?><div class="alert alert-error"><?php echo htmlspecialchars($pw_error); ?></div><?php endif; ?>
 
             <form method="post" action="">
             <div class="profile-card">
@@ -166,6 +199,28 @@ $memberSince = $user['created_at'] ? date('F Y', strtotime($user['created_at']))
                 </div>
             </div>
             </form>
+
+            <div class="profile-card" style="margin-top:1.5rem">
+                <div class="profile-body">
+                    <h3 style="font-size:1rem;font-weight:600;color:#111827;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:1px solid #e5e7eb">Change password</h3>
+                    <form method="post" action="">
+                        <div class="profile-row">
+                            <span class="profile-label">Current password</span>
+                            <input type="password" name="pw_current" autocomplete="current-password" placeholder="Enter current password" required>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">New password</span>
+                            <input type="password" name="pw_new" autocomplete="new-password" placeholder="At least 6 characters" required minlength="6">
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">Confirm new password</span>
+                            <input type="password" name="pw_confirm" autocomplete="new-password" placeholder="Confirm new password" required minlength="6">
+                        </div>
+                        <button type="submit" class="btn-save">Change password</button>
+                    </form>
+                </div>
+            </div>
+
             <footer class="page-footer">© University Kuala Lumpur Royal College of Medicine Perak</footer>
         </div>
     </div>
