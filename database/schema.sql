@@ -64,8 +64,12 @@ CREATE TABLE IF NOT EXISTS applications (
     checkout_date   DATE         NULL COMMENT 'inpatient',
     case_description TEXT        NULL COMMENT 'emergency natural/others',
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    receipt_path    VARCHAR(500) NULL,
+    receipt_uploaded_at DATETIME NULL,
+    receipt_uploaded_by INT UNSIGNED NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (status_id) REFERENCES status(id)
+    FOREIGN KEY (status_id) REFERENCES status(id),
+    FOREIGN KEY (receipt_uploaded_by) REFERENCES staff(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Document table (file paths for application uploads)
