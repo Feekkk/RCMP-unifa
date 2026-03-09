@@ -26,6 +26,17 @@ try {
 } catch (PDOException $e) {
     // applications table not created yet; counts stay 0
 }
+
+$notifications = [];
+$unreadCount = 0;
+try {
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM notification WHERE user_id = ? AND is_read = 0');
+    $stmt->execute([$userId]);
+    $unreadCount = (int) $stmt->fetchColumn();
+    $stmt = $pdo->prepare('SELECT id, application_id, title, message, is_read, created_at FROM notification WHERE user_id = ? ORDER BY created_at DESC LIMIT 8');
+    $stmt->execute([$userId]);
+    $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -177,7 +188,11 @@ try {
             gap: 0.75rem;
         }
         .btn-icon {
+            text-decoration: none;
             display: inline-flex;
+            border: none;
+            font: inherit;
+            cursor: pointer;
             align-items: center;
             justify-content: center;
             width: 40px;
@@ -197,14 +212,21 @@ try {
             color: #111827;
         }
         .btn-icon svg { width: 20px; height: 20px; }
-        .notif-dot {
+        .notif-badge {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 8px;
-            height: 8px;
+            top: 4px;
+            right: 4px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            font-size: 0.7rem;
+            font-weight: 600;
             background: #ef4444;
-            border-radius: 50%;
+            color: #fff;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .search-wrap {
             display: flex;
@@ -381,6 +403,51 @@ try {
         .stat-card--purple .icon { background: rgba(255,255,255,0.2); }
         .stat-card--light .icon { background: rgba(79, 70, 229, 0.12); color: #4f46e5; }
         .stat-card .icon svg { width: 22px; height: 22px; }
+        .notif-card {
+            grid-column: 1 / -1;
+            border-radius: 18px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .notif-card h3 { font-size: 1rem; font-weight: 600; color: #111827; margin-bottom: 1rem; }
+        .notif-list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .notif-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.15s;
+        }
+        .notif-item:hover { background: #f9fafb; }
+        .notif-item.unread { background: rgba(79, 70, 229, 0.06); }
+        .notif-item.unread:hover { background: rgba(79, 70, 229, 0.1); }
+        .notif-item .title { font-weight: 500; color: #111827; }
+        .notif-item .msg { font-size: 0.85rem; color: #6b7280; margin-top: 0.2rem; }
+        .notif-item .time { font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem; }
+        .notif-empty { color: #9ca3af; font-size: 0.9rem; padding: 1rem 0; }
+        .notif-dropdown-wrap { position: relative; }
+        .notif-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 360px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+            z-index: 50;
+        }
+        .notif-dropdown.open { display: block; }
+        .notif-dropdown-header { padding: 1rem 1.25rem; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size: 0.95rem; }
+        .notif-dropdown-body { padding: 0.5rem; }
         .page-footer { text-align: right; padding: 1rem 0; margin-top: 2rem; font-size: 0.8rem; color: #9ca3af; }
     </style>
 </head>
@@ -408,10 +475,33 @@ try {
         <header class="dashboard-header">
             <h1 class="dashboard-title">Student Dashboard</h1>
             <div class="top-actions">
-                <button type="button" class="btn-icon" aria-label="Notifications">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-6-6 6 6 0 00-6 6v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                    <span class="notif-dot"></span>
-                </button>
+                <div class="notif-dropdown-wrap">
+                    <button type="button" class="btn-icon" id="notifBtn" aria-label="Notifications" aria-expanded="false" title="Notifications">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-6-6 6 6 0 00-6 6v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <?php if ($unreadCount > 0): ?><span class="notif-badge"><?php echo $unreadCount > 9 ? '9+' : $unreadCount; ?></span><?php endif; ?>
+                    </button>
+                    <div class="notif-dropdown" id="notifDropdown" aria-hidden="true">
+                        <div class="notif-dropdown-header">Notifications</div>
+                        <div class="notif-dropdown-body">
+                            <?php if (empty($notifications)): ?>
+                                <p class="notif-empty">No notifications yet.</p>
+                            <?php else: ?>
+                                <div class="notif-list">
+                                    <?php foreach ($notifications as $n): ?>
+                                        <a href="markNotificationRead.php?id=<?php echo (int) $n['id']; ?>&to=dashboard.php" class="notif-item <?php echo (int) $n['is_read'] === 0 ? 'unread' : ''; ?>">
+                                            <div>
+                                                <div class="title"><?php echo htmlspecialchars($n['title']); ?></div>
+                                                <div class="msg"><?php echo htmlspecialchars($n['message'] ?? ''); ?></div>
+                                                <div class="time"><?php echo date('d M Y, H:i', strtotime($n['created_at'])); ?></div>
+                                            </div>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
+                                <p style="margin:0.75rem 0.5rem 0"><a href="history.php" style="color:#4f46e5;font-size:0.875rem;font-weight:500">View history →</a></p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
                 <div class="search-wrap">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     <input type="search" placeholder="Search" aria-label="Search">
@@ -460,9 +550,28 @@ try {
                     </div>
                 </div>
             </div>
+
         </main>
             <footer class="page-footer">© University Kuala Lumpur Royal College of Medicine Perak</footer>
         </div>
     </div>
+<script>
+(function(){
+    var btn = document.getElementById('notifBtn');
+    var dd = document.getElementById('notifDropdown');
+    if (!btn || !dd) return;
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var open = dd.classList.toggle('open');
+        btn.setAttribute('aria-expanded', open);
+        dd.setAttribute('aria-hidden', !open);
+    });
+    document.addEventListener('click', function() {
+        dd.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        dd.setAttribute('aria-hidden', 'true');
+    });
+})();
+</script>
 </body>
 </html>
