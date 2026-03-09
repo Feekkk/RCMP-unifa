@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $appId > 0) {
             $stmt->execute([$appId]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($row && (int) $row['status_id'] === 2) {
-                $toStatus = $action === 'approve' ? 3 : 4;
+                $toStatus = $action === 'approve' ? 6 : 4;
                 $pdo->beginTransaction();
                 $pdo->prepare('UPDATE applications SET status_id = ? WHERE id = ?')->execute([$toStatus, $appId]);
                 $pdo->prepare('INSERT INTO application_history (application_id, from_status_id, to_status_id, staff_id, action, notes) VALUES (?, 2, ?, ?, ?, ?)')
