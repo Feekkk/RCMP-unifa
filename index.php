@@ -7,774 +7,549 @@
     <link rel="icon" href="public/rcmp-white.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-base: #06090e;
+            --bg-surface: #0a0e14;
+            --bg-panel: rgba(15, 20, 28, 0.65);
+            --accent: #dcb38a;
+            --accent-glow: rgba(220, 179, 138, 0.15);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --border-light: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(255, 255, 255, 0.15);
+            --shadow-glow: 0 0 30px var(--accent-glow);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
             font-family: 'DM Sans', sans-serif;
-            min-height: 100vh;
-            background: #0f1419;
-            color: #fff;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
+
+        h1, h2, h3, h4, .outfit-font {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulseGlow {
+            0% { opacity: 0.4; filter: blur(60px) scale(1); }
+            100% { opacity: 0.7; filter: blur(80px) scale(1.1); }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            opacity: 0;
+        }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Hero Section */
         .home-hero {
             position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
-            isolation: isolate;
-            background: linear-gradient(135deg, #0f1419 0%, #1a2332 40%, #16202a 100%);
         }
         .home-hero .photo-bg {
             position: absolute;
-            inset: 0;
-            background: url("public/bgm.png") center center / cover no-repeat;
-            filter: blur(7px);
-            transform: scale(1.04);
-            z-index: -3;
+            inset: -5%;
+            background: url("public/bgm.png") center/cover no-repeat;
+            filter: blur(12px) brightness(0.35) saturate(1.1);
+            z-index: 1;
         }
         .home-hero .bg-overlay {
             position: absolute;
             inset: 0;
-            background: radial-gradient(circle at top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.85));
-            pointer-events: none;
-            z-index: -2;
+            background: linear-gradient(180deg, rgba(6,10,16,0.2) 0%, var(--bg-base) 100%);
+            z-index: 2;
         }
-        .home-hero .warm-gradient {
+        .glow-orb {
             position: absolute;
-            top: 0;
-            right: 0;
-            width: 55%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent 0%, rgba(120, 80, 60, 0.35) 100%);
+            top: -20%;
+            right: -10%;
+            width: 70vw;
+            height: 70vw;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 60%);
+            z-index: 3;
+            animation: pulseGlow 8s alternate infinite ease-in-out;
             pointer-events: none;
-            z-index: -1;
         }
-        .container {
-            position: relative;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem 4rem 3rem;
-        }
-        .home-container {
-            min-height: 100vh;
+        .home-hero-content {
+            flex: 1;
             display: flex;
-            flex-direction: column;
-            row-gap: 4rem;
+            align-items: center;
+            padding: 0; /* Remove unequal padding to perfectly center */
+            z-index: 4;
         }
-        .page-gradient-wrap {
-            width: 100%;
-            background: linear-gradient(180deg, #0f1419 0%, #1a2332 25%, #16202a 50%, #1a2332 75%, #0f1419 100%);
-            position: relative;
-        }
-        .page-gradient-wrap::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(90deg, transparent 0%, rgba(120, 80, 60, 0.12) 50%, transparent 100%);
-            pointer-events: none;
-            z-index: 0;
-        }
-        .page-gradient-wrap > * { position: relative; z-index: 1; }
-        .page-container {
-            display: flex;
-            flex-direction: column;
-            row-gap: 4rem;
-            padding-top: 3rem;
-            position: relative;
-        }
+
+        /* Header */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-        .logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.55rem;
-            font-size: 1.25rem;
-            font-weight: 600;
-            letter-spacing: 0.02em;
+            padding: 2rem 0;
+            z-index: 5;
+            position: relative;
         }
         .logo-mark {
             height: 70px;
             width: auto;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+            transition: transform 0.3s;
         }
-        nav {
-            position: relative;
+        .logo-mark:hover {
+            transform: scale(1.03);
         }
-        .nav-trigger {
-            background: none;
-            border: none;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.95rem;
-            cursor: pointer;
-            padding: 0.5rem 0;
-            letter-spacing: 0.02em;
-        }
-        .nav-trigger:hover { opacity: 0.85; }
-        .nav-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 0.5rem;
-            min-width: 200px;
-            background: rgba(20, 28, 38, 0.95);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 8px;
-            padding: 0.5rem 0;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-6px);
-            transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
-        }
-        nav:hover .nav-dropdown {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-        .nav-dropdown a {
-            display: block;
-            color: #e8e8e8;
-            text-decoration: none;
-            padding: 0.6rem 1.25rem;
-            font-size: 0.9rem;
-            transition: background 0.15s, color 0.15s;
-        }
-        .nav-dropdown a:hover {
-            background: rgba(255,255,255,0.06);
-            color: #fff;
-        }
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
+
         .auth-actions {
             display: flex;
+            gap: 1rem;
             align-items: center;
-            gap: 0.75rem;
-            font-size: 0.9rem;
         }
         .auth-link {
-            border-radius: 999px;
-            padding: 0.45rem 1.1rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.75rem 1.75rem;
+            border-radius: 99px;
             text-decoration: none;
-            font-weight: 500;
-            letter-spacing: 0.04em;
             text-transform: uppercase;
-            font-size: 0.78rem;
+            letter-spacing: 0.05em;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         .auth-link--ghost {
-            color: rgba(255,255,255,0.8);
-            border: 1px solid rgba(255,255,255,0.35);
-        }
-        .auth-link--solid {
-            color: #0f1419;
-            background: #ffffff;
-            border: 1px solid #ffffff;
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-light);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
         .auth-link--ghost:hover {
-            background: rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.08);
+            border-color: var(--border-highlight);
+            transform: translateY(-2px);
+        }
+        .auth-link--solid {
+            background: var(--text-primary);
+            color: var(--bg-base);
+            box-shadow: 0 4px 15px rgba(255,255,255,0.1);
         }
         .auth-link--solid:hover {
-            background: transparent;
-            color: #ffffff;
+            box-shadow: 0 8px 25px rgba(255,255,255,0.25);
+            transform: translateY(-2px);
         }
-        main {
-            flex: 1;
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 3rem;
-            padding-top: 3rem;
-            padding-bottom: 1rem;
-        }
-        .hero-left {
-            flex-shrink: 0;
+
+        /* Hero Layout */
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            width: 100%;
         }
         .hero-title {
-            font-size: clamp(3.5rem, 10vw, 7rem);
-            font-weight: 700;
+            font-size: clamp(3.8rem, 8vw, 7.5rem);
+            font-weight: 800;
             line-height: 0.95;
-            letter-spacing: -0.02em;
             text-transform: uppercase;
+            background: linear-gradient(135deg, #ffffff 30%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.25rem;
+            letter-spacing: -0.02em;
         }
         .hero-tagline {
-            margin-top: 0.75rem;
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: rgba(255,255,255,0.9);
-            letter-spacing: 0.01em;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            letter-spacing: 0.03em;
+            margin-bottom: 0;
         }
-        .hero-right {
-            max-width: 380px;
+        .hero-right-content {
+            padding-bottom: 0.5rem;
             text-align: right;
         }
         .hero-details {
-            font-size: 1rem;
-            line-height: 1.6;
-            color: rgba(255,255,255,0.88);
+            font-size: 1.1rem;
+            color: var(--text-secondary);
             margin-bottom: 2rem;
+            line-height: 1.7;
         }
+
         .cta {
-            display: inline-block;
-            padding: 0.85rem 2rem;
-            border: 1px solid rgba(255,255,255,0.9);
-            border-radius: 999px;
-            color: #0f1419;
-            background: #fff;
-            font-family: inherit;
-            font-size: 0.95rem;
-            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+            color: var(--bg-base);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            border-radius: 99px;
             text-decoration: none;
-            letter-spacing: 0.02em;
-            transition: background 0.2s, color 0.2s, border-color 0.2s;
-        }
-        .cta:hover {
-            background: transparent;
-            color: #fff;
-        }
-        .section-swf {
-            margin-top: 0;
-            padding: 3rem 3rem;
-            border-radius: 1.5rem;
-            background: linear-gradient(135deg, rgba(26, 35, 50, 0.92) 0%, rgba(22, 32, 42, 0.95) 50%, rgba(26, 35, 50, 0.92) 100%);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 18px 55px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3), inset 0 -2px 0 rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.4);
             position: relative;
             overflow: hidden;
+        }
+        .cta::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(220, 179, 138, 0), rgba(220, 179, 138, 0.3));
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .cta:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(255,255,255,0.15), inset 0 -2px 0 rgba(0,0,0,0.1);
+        }
+        .cta:hover::after { opacity: 1; }
+
+        /* Page Layout */
+        .page-gradient-wrap {
+            position: relative;
+            background: linear-gradient(180deg, var(--bg-base) 0%, var(--bg-surface) 50%, var(--bg-base) 100%);
+        }
+        .page-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6rem;
+            padding: 6rem 0;
+        }
+
+        /* Glass Pane Component */
+        .glass-pane {
+            background: var(--bg-panel);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-light);
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+            padding: 3.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-pane::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+        }
+
+        /* Section Headings */
+        .section-eyebrow, .section-side-heading {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+        }
+        .section-title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+        .section-body {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+
+        /* Grid Layouts */
+        .section-swf {
             display: grid;
-            grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
-            gap: 3rem;
-            align-items: flex-start;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 4rem;
         }
-        .section-swf::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 50%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent 0%, rgba(120, 80, 60, 0.15) 100%);
-            pointer-events: none;
-            z-index: 0;
+
+        /* Timeline Items */
+        .timeline { display: grid; gap: 1.25rem; }
+        .timeline-item, .objective-card, .funding-card, .committee-node {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-light);
+            border-radius: 1rem;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
-        .section-swf > * { position: relative; z-index: 1; }
-        .section-swf .section-eyebrow {
-            color: rgba(255,255,255,0.6);
-        }
-        .section-swf .section-title {
-            color: #fff;
-        }
-        .section-swf .section-body {
-            color: rgba(255,255,255,0.9);
-        }
-        .timeline {
-            margin-top: 1.25rem;
-            display: grid;
-            gap: 1rem;
+        .timeline-item:hover, .objective-card:hover, .funding-card:hover, .committee-node:hover {
+            background: rgba(255,255,255,0.04);
+            border-color: var(--border-highlight);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
         .timeline-item {
             display: grid;
-            grid-template-columns: 84px 1fr;
-            gap: 1.1rem;
-            padding: 1rem 1.1rem;
-            border-radius: 1.1rem;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.04);
+            grid-template-columns: 90px 1fr;
+            gap: 1.5rem;
+            padding: 1.25rem 1.5rem;
         }
         .timeline-year {
+            font-family: 'Outfit', sans-serif;
             font-weight: 700;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            color: rgba(255,255,255,0.7);
+            font-size: 1.1rem;
+            color: var(--accent);
+            letter-spacing: 0.05em;
         }
         .timeline-title {
-            font-weight: 650;
-            letter-spacing: 0.01em;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1.15rem;
             margin-bottom: 0.25rem;
+            color: var(--text-primary);
         }
         .timeline-copy {
+            color: var(--text-secondary);
             font-size: 0.95rem;
-            line-height: 1.65;
-            color: rgba(255,255,255,0.85);
+            line-height: 1.6;
         }
-        .objective-cards {
-            margin-top: 1rem;
-            display: grid;
-            gap: 0.9rem;
-        }
+
+        /* Objective Cards */
+        .objective-cards { display: grid; gap: 1.25rem; }
         .objective-card {
-            padding: 1rem 1.05rem;
-            border-radius: 1.1rem;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.04);
             display: grid;
-            grid-template-columns: 42px 1fr;
-            gap: 0.9rem;
+            grid-template-columns: 48px 1fr;
+            gap: 1.25rem;
+            padding: 1.25rem 1.5rem;
         }
-        .objective-icon {
-            width: 42px;
-            height: 42px;
+        .objective-icon, .committee-node-badge {
+            width: 48px; height: 48px;
             border-radius: 14px;
-            display: grid;
-            place-items: center;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+            border: 1px solid var(--border-light);
+            font-family: 'Outfit', sans-serif;
             font-weight: 700;
-            color: rgba(255, 255, 255, 0.92);
-            background: linear-gradient(135deg, #1a2332 0%, #2d4770 100%);
-            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
-            user-select: none;
+            font-size: 1.25rem;
+            color: var(--accent);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
         }
         .objective-title {
-            font-weight: 650;
-            letter-spacing: 0.01em;
-            margin-bottom: 0.2rem;
-            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1.15rem;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
         }
         .objective-copy {
+            color: var(--text-secondary);
             font-size: 0.95rem;
-            line-height: 1.65;
-            color: rgba(255,255,255,0.85);
         }
-        .section-eyebrow {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.18em;
-            color: rgba(255,255,255,0.6);
-            margin-bottom: 0.75rem;
-        }
-        .section-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            margin-bottom: 1rem;
-        }
-        .section-body {
-            font-size: 0.98rem;
-            line-height: 1.7;
-            color: rgba(255,255,255,0.9);
-        }
-        .section-body + .section-body {
-            margin-top: 0.9rem;
-        }
-        .section-side-heading {
-            font-size: 0.9rem;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.65);
-            margin-bottom: 0.75rem;
-        }
-        .section-swf .section-side-heading {
-            color: rgba(255,255,255,0.65);
-        }
-        .section-list {
-            list-style: none;
-            font-size: 0.95rem;
-            color: rgba(255,255,255,0.9);
-            margin-bottom: 1.75rem;
-        }
-        .section-list li + li {
-            margin-top: 0.4rem;
-        }
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 1.1rem;
-        }
-        .stat-card {
-            padding: 0.9rem 1rem;
-            border-radius: 0.9rem;
-            background: linear-gradient(145deg, rgba(26, 35, 50, 0.8), rgba(22, 32, 42, 0.9));
-            border: 1px solid rgba(255,255,255,0.12);
-        }
-        .section-swf .stat-card {
-            background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-            border: 1px solid rgba(255,255,255,0.12);
-        }
-        .section-swf .stat-value {
-            color: #fff;
-        }
-        .section-swf .stat-label {
-            color: rgba(255,255,255,0.65);
-        }
-        .stat-value {
-            font-size: 1.3rem;
-            font-weight: 600;
-            letter-spacing: 0.03em;
-            margin-bottom: 0.15rem;
-        }
-        .stat-label {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            color: rgba(255,255,255,0.75);
-        }
-        .section-funding {
-            margin-top: 0;
-            padding-top: 3rem;
-            border-top: 1px solid rgba(255,255,255,0.08);
-        }
-        .funding-wrap {
-            position: relative;
-            border-radius: 1.4rem;
-            background: linear-gradient(135deg, rgba(26, 35, 50, 0.9) 0%, rgba(22, 32, 42, 0.95) 50%, rgba(26, 35, 50, 0.9) 100%);
-            border: 1px solid rgba(255,255,255,0.12);
-            overflow: hidden;
-            padding: 2.2rem 2.2rem 2.1rem;
-        }
-        .funding-wrap::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 45%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent 0%, rgba(120, 80, 60, 0.18) 100%);
-            pointer-events: none;
-            z-index: 0;
-        }
-        .funding-wrap > * { position: relative; z-index: 1; }
-        .funding-header {
-            max-width: 520px;
-            margin-bottom: 2rem;
-        }
+
+        /* Funding Section */
         .funding-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 1.4rem;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
         }
         .funding-card {
-            position: relative;
-            padding: 1.2rem 1.25rem 1.25rem;
-            border-radius: 1.2rem;
-            background: linear-gradient(155deg, rgba(26, 35, 50, 0.8), rgba(22, 32, 42, 0.9));
-            border: 1px solid rgba(255,255,255,0.12);
-            overflow: hidden;
+            padding: 2.5rem 2rem;
+            border-radius: 1.5rem;
         }
-        .funding-card::after {
-            content: "";
-            position: absolute;
-            inset: -1px;
-            border-radius: 1.2rem;
-            background: radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 60%);
-            pointer-events: none;
-            opacity: 0.85;
+        .funding-card--primary {
+            background: linear-gradient(145deg, rgba(220, 179, 138, 0.1), rgba(0,0,0,0));
+            border-color: rgba(220, 179, 138, 0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .funding-card--primary:hover {
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
         }
         .funding-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.38rem 0.7rem;
-            border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.18);
-            background: rgba(255,255,255,0.06);
-            color: rgba(255,255,255,0.86);
-            font-size: 0.78rem;
-            letter-spacing: 0.14em;
+            display: inline-block;
+            padding: 0.45rem 1.1rem;
+            border-radius: 99px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
             text-transform: uppercase;
-            margin-bottom: 0.85rem;
+            letter-spacing: 0.12em;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+        }
+        .funding-card--primary .funding-pill {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            box-shadow: 0 4px 10px rgba(220, 179, 138, 0.3);
         }
         .funding-price {
             display: flex;
             align-items: baseline;
-            gap: 0.4rem;
-            margin-bottom: 0.35rem;
+            gap: 0.3rem;
+            margin-bottom: 0.5rem;
+            font-family: 'Outfit', sans-serif;
         }
         .funding-currency {
-            font-size: 0.95rem;
+            font-size: 1.25rem;
             font-weight: 700;
-            color: rgba(255,255,255,0.9);
-            letter-spacing: 0.08em;
+            color: var(--text-secondary);
         }
         .funding-amount {
-            font-size: 2.1rem;
-            font-weight: 750;
-            letter-spacing: -0.02em;
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
         }
         .funding-period {
-            font-size: 0.9rem;
-            color: rgba(255,255,255,0.78);
-            margin-bottom: 0.95rem;
-        }
-        .funding-card--primary {
-            border-color: rgba(255,255,255,0.2);
-            background: linear-gradient(155deg, rgba(45, 71, 112, 0.4), rgba(120, 80, 60, 0.2), rgba(22, 32, 42, 0.95));
-        }
-        .funding-card--primary .funding-pill {
-            border-color: rgba(255,255,255,0.24);
-            background: rgba(185, 210, 255, 0.10);
-        }
-        .funding-title {
+            color: var(--text-secondary);
             font-size: 0.95rem;
-            font-weight: 600;
-            margin-bottom: 0.35rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-weight: 500;
         }
         .funding-body {
-            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
             line-height: 1.6;
-            color: rgba(255,255,255,0.9);
         }
-        .section-programs {
-            padding-top: 3rem;
-            border-top: 1px solid rgba(255,255,255,0.08);
-        }
-        .programs-header {
-            max-width: 520px;
-            margin-bottom: 2rem;
-        }
-        .program-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 1.6rem;
-        }
-        .committee-tree-wrap {
-            position: relative;
-            border-radius: 1.4rem;
-            background: linear-gradient(135deg, rgba(26, 35, 50, 0.9) 0%, rgba(22, 32, 42, 0.95) 50%, rgba(26, 35, 50, 0.9) 100%);
-            border: 1px solid rgba(255,255,255,0.12);
-            overflow: hidden;
-        }
-        .committee-tree-wrap::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(90deg, transparent 30%, rgba(120, 80, 60, 0.08) 70%, transparent 100%);
-            pointer-events: none;
-            z-index: 0;
-        }
-        .committee-tree-wrap > * { position: relative; z-index: 1; }
-        .committee-tree-scroll {
-            max-height: 520px;
-            overflow-y: auto;
-            padding: 1.3rem 1.25rem 1.7rem;
-            scrollbar-gutter: stable;
-        }
-        .committee-tree-scroll::-webkit-scrollbar { width: 10px; }
-        .committee-tree-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.18);
-            border-radius: 999px;
-            border: 2px solid rgba(10,14,20,0.9);
-        }
-        .committee-tree-scroll::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.06);
-        }
-        .committee-scroll-fade {
-            pointer-events: none;
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            height: 72px;
-            background: linear-gradient(to bottom, rgba(10,14,20,0), rgba(10,14,20,0.88));
-        }
+
+        /* Committee Tree */
         .committee-tree {
-            display: grid;
-            gap: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            padding: 1rem 0 3rem;
+            overflow-x: auto;
         }
         .committee-level {
-            display: grid;
-            gap: 0.85rem;
-        }
-        .committee-level--center {
-            justify-items: center;
-        }
-        .committee-level--row {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            align-items: stretch;
-        }
-        .committee-level--row2 {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-        .committee-connector {
-            position: relative;
-            height: 26px;
-        }
-        .committee-connector::before {
-            content: "";
-            position: absolute;
-            left: 50%;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            transform: translateX(-50%);
-            background: rgba(255,255,255,0.18);
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            width: 100%;
         }
         .committee-node {
-            position: relative;
-            padding: 1rem 1.05rem 0.95rem;
-            border-radius: 1.2rem;
-            border: 1px solid rgba(255,255,255,0.16);
-            background: rgba(255,255,255,0.06);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            display: grid;
-            grid-template-columns: 44px 1fr;
-            gap: 0.9rem;
-            align-items: start;
-        }
-        .committee-node::after {
-            content: "";
-            position: absolute;
-            inset: -1px;
-            border-radius: 1.2rem;
-            background: radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 60%);
-            pointer-events: none;
-            opacity: 0.8;
-        }
-        .committee-node-badge {
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-            display: grid;
-            place-items: center;
-            font-weight: 750;
-            letter-spacing: 0.02em;
-            color: rgba(255, 255, 255, 0.92);
-            background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.15) 55%, rgba(255,255,255,0.06) 100%);
-            color: rgba(15, 20, 25, 0.92);
-            box-shadow: 0 10px 26px rgba(0,0,0,0.35);
-        }
-        .committee-node-role {
-            font-size: 1rem;
-            font-weight: 650;
-            letter-spacing: 0.01em;
-            margin-bottom: 0.25rem;
-            color: rgba(255,255,255,0.95);
-        }
-        .committee-node-note {
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: rgba(255,255,255,0.78);
+            padding: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1.2rem;
+            flex: 1;
+            max-width: 360px;
+            min-width: 280px;
+            border-radius: 1.25rem;
         }
         .committee-node--primary {
-            background: linear-gradient(145deg, rgba(255,255,255,0.10), rgba(255,255,255,0.05));
-            border-color: rgba(255,255,255,0.22);
+            background: linear-gradient(135deg, rgba(220, 179, 138, 0.15), rgba(255,255,255,0.02));
+            border-color: rgba(220, 179, 138, 0.3);
+        }
+        .committee-node-badge {
+            width: 44px; height: 44px;
+            border-radius: 12px;
         }
         .committee-node--primary .committee-node-badge {
-            background: linear-gradient(135deg, #ffffff 0%, #b9d2ff 65%, rgba(255,255,255,0.20) 100%);
+            background: var(--accent);
+            color: #000;
+            border: none;
         }
-        @media (max-width: 900px) {
-            .committee-level--row {
-                grid-template-columns: minmax(0, 1fr);
-            }
-            .committee-level--row2 {
-                grid-template-columns: minmax(0, 1fr);
-            }
+        .committee-node-role {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.35rem;
+            line-height: 1.3;
+            color: var(--text-primary);
         }
-        .program-card {
-            padding: 1.2rem 1.3rem 1.1rem;
-            border-radius: 1rem;
-            background: linear-gradient(155deg, rgba(26, 35, 50, 0.85), rgba(22, 32, 42, 0.9));
-            border: 1px solid rgba(255,255,255,0.12);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+        .committee-node-note {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
         }
-        .program-title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.4rem;
-        }
-        .program-body {
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: rgba(255,255,255,0.9);
-            margin-bottom: 0.9rem;
-        }
-        .program-link {
-            align-self: flex-start;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.16em;
-            color: rgba(255,255,255,0.9);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-        }
-        .program-link span {
-            font-size: 0.95em;
-        }
-        .program-link:hover {
-            color: #ffffff;
-        }
-        footer {
-            margin-top: 3rem;
-            padding-top: 1.75rem;
-            border-top: 1px solid rgba(255,255,255,0.08);
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            color: rgba(255,255,255,0.7);
+        .committee-connector {
+            width: 2px;
+            height: 32px;
+            background: linear-gradient(to bottom, var(--border-highlight), transparent);
+            margin: -2rem auto 0;
             position: relative;
         }
-        footer::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, transparent 0%, rgba(120, 80, 60, 0.06) 100%);
-            pointer-events: none;
-            z-index: 0;
+        .committee-connector::after {
+            content: ''; position: absolute; top: 0; left: 50%;
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--border-highlight);
+            transform: translate(-50%, -50%);
         }
-        footer > * { position: relative; z-index: 1; }
+
+        /* Footer */
+        footer {
+            padding: 4rem 2rem;
+            text-align: center;
+            border-top: 1px solid var(--border-light);
+            position: relative;
+            background: var(--bg-surface);
+        }
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%; width: 50%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(220, 179, 138, 0.3), transparent);
+            transform: translateX(-50%);
+        }
         .footer-logo {
-            display: block;
-            height: 40px;
+            height: 55px;
+            margin-bottom: 1.5rem;
             opacity: 0.9;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
         }
         .footer-meta {
-            letter-spacing: 0.12em;
+            font-family: 'Outfit', sans-serif;
             text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+            font-weight: 600;
         }
         .footer-info {
-            text-align: center;
-            line-height: 1.6;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+            max-width: 600px;
+            margin: 0 auto;
         }
-        @media (max-width: 1100px) {
-            .funding-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-            .program-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-            .committee-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .hero-grid { grid-template-columns: 1fr; text-align: center; }
+            .hero-right-content { text-align: center; margin-top: 2rem; }
+            .hero-tagline { margin: 0 auto; }
+            .home-hero .glow-orb { top: -10%; left: 0; right: 0; width: 100vw; }
+            .section-swf { grid-template-columns: 1fr; gap: 4rem; }
+            .glass-pane { padding: 2.5rem 2rem; }
+            .committee-level { flex-wrap: wrap; }
+            .committee-connector { margin-top: -1.5rem; }
         }
-        @media (max-width: 900px) {
-            .container { padding: 1.5rem 1.5rem 2rem; }
-            header { flex-direction: row; gap: 1rem; }
-            .header-right { gap: 1rem; }
-            .auth-actions { display: none; }
-            main { flex-direction: column; align-items: flex-start; }
-            .hero-right { text-align: left; max-width: 100%; }
-            .section-swf {
-                grid-template-columns: minmax(0, 1fr);
-                gap: 2rem;
-                padding: 2rem 1.5rem;
-            }
-            .stat-grid {
-                grid-template-columns: repeat(3, minmax(0, 90px));
-            }
-            .section-funding {
-                margin-top: 3rem;
-            }
-            .funding-wrap {
-                padding: 1.8rem 1.5rem 1.6rem;
-            }
-            .funding-grid {
-                grid-template-columns: minmax(0, 1fr);
-            }
-            .program-grid {
-                grid-template-columns: minmax(0, 1fr);
-            }
-            .committee-grid {
-                grid-template-columns: minmax(0, 1fr);
-            }
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 1.5rem; }
+            .hero-title { font-size: 3.2rem; }
+            .funding-grid { grid-template-columns: 1fr; }
+            .committee-node { min-width: 100%; }
         }
     </style>
 </head>
@@ -782,9 +557,10 @@
     <section class="home-hero" id="home">
         <div class="photo-bg"></div>
         <div class="bg-overlay"></div>
-        <div class="warm-gradient"></div>
-        <div class="container home-container">
-            <header>
+        <div class="glow-orb"></div>
+        
+        <div class="container" style="display: flex; flex-direction: column; flex: 1;">
+            <header class="animate-in">
                 <span class="logo">
                     <img src="public/official-logo.png" alt="UniKL RCMP logo" class="logo-mark">
                 </span>
@@ -795,86 +571,88 @@
                     </div>
                 </div>
             </header>
-            <main>
-                <div class="hero-left">
-                    <h1 class="hero-title">RCMP UniFa</h1>
-                    <p class="hero-tagline">UniKL Financial Aid System — Supporting Student Success</p>
+            
+            <div class="home-hero-content">
+                <div class="hero-grid">
+                    <div class="hero-left-content animate-in delay-1">
+                        <h1 class="hero-title">RCMP UniFa</h1>
+                        <p class="hero-tagline">UniKL Financial Aid System — Supporting Student Success</p>
+                    </div>
+                    <div class="hero-right-content animate-in delay-2">
+                        <p class="hero-details">Empowering UniKL students to achieve their academic dreams through comprehensive financial support.</p>
+                        <a href="auth/login.php" class="cta">Get Started</a>
+                    </div>
                 </div>
-                <div class="hero-right">
-                    <p class="hero-details">Empowering UniKL students to achieve their academic dreams through comprehensive financial support.</p>
-                    <a href="auth/login.php" class="cta">Get Started</a>
-                </div>
-            </main>
+            </div>
         </div>
     </section>
 
     <div class="page-gradient-wrap">
-    <div class="container page-container">
-        <section class="section-swf">
-            <div>
-                <div class="section-eyebrow">History</div>
-                <h2 class="section-title">Student Welfare Fund (SWF)</h2>
-                <p class="section-body">A quick timeline of how the fund began, evolved, and is managed today.</p>
-                <div class="timeline" role="list">
-                    <div class="timeline-item" role="listitem">
-                        <div class="timeline-year">2005</div>
-                        <div>
-                            <div class="timeline-title">Established as TKS</div>
-                            <div class="timeline-copy">Tabung Kebajikan Siswa (TKS) was established on 30 September 2005, endorsed and approved by UniKL management.</div>
+        <div class="container page-container">
+            
+            <section class="section-swf glass-pane animate-in delay-3">
+                <div>
+                    <div class="section-eyebrow">History</div>
+                    <h2 class="section-title">Student Welfare Fund (SWF)</h2>
+                    <p class="section-body">A quick timeline of how the fund began, evolved, and is managed today.</p>
+                    <div class="timeline" role="list">
+                        <div class="timeline-item" role="listitem">
+                            <div class="timeline-year">2005</div>
+                            <div>
+                                <div class="timeline-title">Established as TKS</div>
+                                <div class="timeline-copy">Tabung Kebajikan Siswa (TKS) was established on 30 September 2005, endorsed and approved by UniKL management.</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="timeline-item" role="listitem">
-                        <div class="timeline-year">2017</div>
-                        <div>
-                            <div class="timeline-title">Rebranded to SWF</div>
-                            <div class="timeline-copy">TKS was rebranded to Student Welfare Fund (SWF) on 12 December 2017 to strengthen welfare support for students.</div>
+                        <div class="timeline-item" role="listitem">
+                            <div class="timeline-year">2017</div>
+                            <div>
+                                <div class="timeline-title">Rebranded to SWF</div>
+                                <div class="timeline-copy">TKS was rebranded to Student Welfare Fund (SWF) on 12 December 2017 to strengthen welfare support for students.</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="timeline-item" role="listitem">
-                        <div class="timeline-year">2018</div>
-                        <div>
-                            <div class="timeline-title">Operational governance</div>
-                            <div class="timeline-copy">Approved on TMM 30 January 2018 (TMM No.125 (2/2018)), with operations managed by the Campus Lifestyle Division and Campus Lifestyle Section.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <div class="section-side-heading">SWF UniKLRCMP Objectives</div>
-                <p class="section-body">Focused support designed to protect student wellbeing and help you stay on track academically.</p>
-                <div class="objective-cards">
-                    <div class="objective-card">
-                        <div class="objective-icon">1</div>
-                        <div>
-                            <div class="objective-title">Emergency &amp; crisis support</div>
-                            <div class="objective-copy">Fast assistance for urgent situations that impact safety, accommodation, food, or immediate necessities.</div>
-                        </div>
-                    </div>
-                    <div class="objective-card">
-                        <div class="objective-icon">2</div>
-                        <div>
-                            <div class="objective-title">Medical &amp; injury assistance</div>
-                            <div class="objective-copy">Support related to medical conditions or injuries, including cases that require quick intervention or recovery time.</div>
-                        </div>
-                    </div>
-                    <div class="objective-card">
-                        <div class="objective-icon">3</div>
-                        <div>
-                            <div class="objective-title">Bereavement &amp; compassionate aid</div>
-                            <div class="objective-copy">Help for students facing bereavement or family hardship, to reduce financial stress during difficult periods.</div>
+                        <div class="timeline-item" role="listitem">
+                            <div class="timeline-year">2018</div>
+                            <div>
+                                <div class="timeline-title">Operational governance</div>
+                                <div class="timeline-copy">Approved on TMM 30 January 2018, with operations managed by the Campus Lifestyle Division.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
+                <div>
+                    <div class="section-side-heading">SWF UniKLRCMP Objectives</div>
+                    <p class="section-body">Focused support designed to protect student wellbeing and help you stay on track academically.</p>
+                    <div class="objective-cards">
+                        <div class="objective-card">
+                            <div class="objective-icon">1</div>
+                            <div>
+                                <div class="objective-title">Emergency &amp; crisis support</div>
+                                <div class="objective-copy">Fast assistance for urgent situations that impact safety, accommodation, food, or immediate necessities.</div>
+                            </div>
+                        </div>
+                        <div class="objective-card">
+                            <div class="objective-icon">2</div>
+                            <div>
+                                <div class="objective-title">Medical &amp; injury assistance</div>
+                                <div class="objective-copy">Support related to medical conditions or injuries, including cases that require quick intervention.</div>
+                            </div>
+                        </div>
+                        <div class="objective-card">
+                            <div class="objective-icon">3</div>
+                            <div>
+                                <div class="objective-title">Bereavement &amp; compassionate aid</div>
+                                <div class="objective-copy">Help for students facing bereavement or family hardship, to reduce financial stress during difficult periods.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-        <section class="section-funding">
-            <div class="funding-wrap">
-                <div class="funding-header">
-                    <div class="section-eyebrow">Funding</div>
-                    <h2 class="section-title">Student Contribution SWF</h2>
-                    <p class="section-body">The fund collection is based on SWF fees collected from registered students.</p>
-                </div>
+            <section class="section-funding glass-pane animate-in delay-4">
+                <div class="section-eyebrow">Funding</div>
+                <h2 class="section-title">Student Contribution SWF</h2>
+                <p class="section-body" style="max-width: 600px; margin-bottom: 3rem;">The fund collection is based on SWF fees collected from registered students each semester to continuously power this initiative.</p>
+                
                 <div class="funding-grid">
                     <article class="funding-card funding-card--primary">
                         <div class="funding-pill">Local student</div>
@@ -895,88 +673,84 @@
                         <p class="funding-body">SWF fee collected from registered international students each semester.</p>
                     </article>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section class="section-programs">
-            <div class="programs-header">
+            <section class="section-programs glass-pane animate-in delay-4">
                 <div class="section-eyebrow">Committee</div>
                 <h2 class="section-title">SWF Campus Committee Members</h2>
-                <p class="section-body">Committee structure and membership hierarchy for SWF at campus level.</p>
-            </div>
-            <div class="committee-tree-wrap">
-                <div class="committee-tree-scroll" aria-label="Committee hierarchy">
-                    <div class="committee-tree" role="list">
-                        <div class="committee-level committee-level--center" role="listitem">
-                            <div class="committee-node committee-node--primary">
-                                <div class="committee-node-badge">1</div>
-                                <div>
-                                    <div class="committee-node-role">Head of Campus / Dean</div>
-                                    <div class="committee-node-note">Chairperson</div>
-                                </div>
+                <p class="section-body" style="max-width: 600px; margin-bottom: 3rem;">Committee structure and membership hierarchy for SWF at campus level.</p>
+                
+                <div class="committee-tree" role="list">
+                    <div class="committee-level" role="listitem">
+                        <div class="committee-node committee-node--primary">
+                            <div class="committee-node-badge">1</div>
+                            <div>
+                                <div class="committee-node-role">Head of Campus / Dean</div>
+                                <div class="committee-node-note">Chairperson</div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="committee-connector" aria-hidden="true"></div>
+                    <div class="committee-connector" aria-hidden="true"></div>
 
-                        <div class="committee-level committee-level--row" role="listitem">
-                            <div class="committee-node">
-                                <div class="committee-node-badge">2</div>
-                                <div>
-                                    <div class="committee-node-role">Deputy Dean, SDCL</div>
-                                    <div class="committee-node-note">Committee member</div>
-                                </div>
-                            </div>
-                            <div class="committee-node">
-                                <div class="committee-node-badge">3</div>
-                                <div>
-                                    <div class="committee-node-role">Campus Lifestyle Head</div>
-                                    <div class="committee-node-note">Committee member</div>
-                                </div>
-                            </div>
-                            <div class="committee-node">
-                                <div class="committee-node-badge">4</div>
-                                <div>
-                                    <div class="committee-node-role">Representative of Finance and Administration Department</div>
-                                    <div class="committee-node-note">Committee member</div>
-                                </div>
+                    <div class="committee-level" role="listitem">
+                        <div class="committee-node">
+                            <div class="committee-node-badge">2</div>
+                            <div>
+                                <div class="committee-node-role">Deputy Dean, SDCL</div>
+                                <div class="committee-node-note">Committee member</div>
                             </div>
                         </div>
-
-                        <div class="committee-connector" aria-hidden="true"></div>
-
-                        <div class="committee-level committee-level--row2" role="listitem">
-                            <div class="committee-node">
-                                <div class="committee-node-badge">5</div>
-                                <div>
-                                    <div class="committee-node-role">Executive, Campus Lifestyle Section or any designated staff</div>
-                                    <div class="committee-node-note">Secretariat</div>
-                                </div>
+                        <div class="committee-node">
+                            <div class="committee-node-badge">3</div>
+                            <div>
+                                <div class="committee-node-role">Campus Lifestyle Head</div>
+                                <div class="committee-node-note">Committee member</div>
                             </div>
-                            <div class="committee-node">
-                                <div class="committee-node-badge">6</div>
-                                <div>
-                                    <div class="committee-node-role">President of Student Representative Committee or representative</div>
-                                    <div class="committee-node-note">By invitation</div>
-                                </div>
+                        </div>
+                        <div class="committee-node">
+                            <div class="committee-node-badge">4</div>
+                            <div>
+                                <div class="committee-node-role">Rep. of Finance &amp; Admin</div>
+                                <div class="committee-node-note">Committee member</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="committee-connector" aria-hidden="true"></div>
+
+                    <div class="committee-level" role="listitem" style="max-width: 800px; margin: 0 auto;">
+                        <div class="committee-node">
+                            <div class="committee-node-badge">5</div>
+                            <div>
+                                <div class="committee-node-role">Executive, Campus Lifestyle Section or any designated staff</div>
+                                <div class="committee-node-note">Secretariat</div>
+                            </div>
+                        </div>
+                        <div class="committee-node">
+                            <div class="committee-node-badge">6</div>
+                            <div>
+                                <div class="committee-node-role">President of SRC or representative</div>
+                                <div class="committee-node-note">By invitation</div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="committee-scroll-fade" aria-hidden="true"></div>
-            </div>
-        </section>
+            </section>
 
+        </div>
+        
         <footer>
-            <img src="public/rcmp-white.png" alt="UniKL RCMP" class="footer-logo">
-            <div class="footer-meta">Universiti Kuala Lumpur &middot; Royal College of Medicine Perak</div>
-            <div class="footer-info">
-                Email: rcmp@unikl.edu.my &middot; Tel: +60 (0)5-123 4567<br>
-                Location: Jalan Greentown, 30450 Ipoh, Perak, Malaysia<br>
-                Office Hours: Monday &ndash; Friday, 8:00 AM &ndash; 5:00 PM
+            <div class="container">
+                <img src="public/rcmp-white.png" alt="UniKL RCMP" class="footer-logo">
+                <div class="footer-meta">Universiti Kuala Lumpur &middot; Royal College of Medicine Perak</div>
+                <div class="footer-info">
+                    Email: rcmp@unikl.edu.my &nbsp;&middot;&nbsp; Tel: +60 (0)5-123 4567<br>
+                    Location: Jalan Greentown, 30450 Ipoh, Perak, Malaysia<br>
+                    Office Hours: Monday &ndash; Friday, 8:00 AM &ndash; 5:00 PM
+                </div>
             </div>
         </footer>
-    </div>
     </div>
 </body>
 </html>
