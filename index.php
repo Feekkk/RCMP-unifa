@@ -60,11 +60,26 @@
             flex-direction: column;
             row-gap: 4rem;
         }
+        .page-gradient-wrap {
+            width: 100%;
+            background: linear-gradient(180deg, #0f1419 0%, #1a2332 25%, #16202a 50%, #1a2332 75%, #0f1419 100%);
+            position: relative;
+        }
+        .page-gradient-wrap::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(120, 80, 60, 0.12) 50%, transparent 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .page-gradient-wrap > * { position: relative; z-index: 1; }
         .page-container {
             display: flex;
             flex-direction: column;
             row-gap: 4rem;
             padding-top: 3rem;
+            position: relative;
         }
         header {
             display: flex;
@@ -223,22 +238,36 @@
             margin-top: 0;
             padding: 3rem 3rem;
             border-radius: 1.5rem;
-            background: rgba(255, 255, 255, 0.96);
-            color: #0f1419;
-            box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35);
+            background: linear-gradient(135deg, rgba(26, 35, 50, 0.92) 0%, rgba(22, 32, 42, 0.95) 50%, rgba(26, 35, 50, 0.92) 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 18px 55px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+            position: relative;
+            overflow: hidden;
             display: grid;
             grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
             gap: 3rem;
             align-items: flex-start;
         }
+        .section-swf::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent 0%, rgba(120, 80, 60, 0.15) 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .section-swf > * { position: relative; z-index: 1; }
         .section-swf .section-eyebrow {
-            color: rgba(15, 20, 25, 0.6);
+            color: rgba(255,255,255,0.6);
         }
         .section-swf .section-title {
-            color: #0f1419;
+            color: #fff;
         }
         .section-swf .section-body {
-            color: rgba(15, 20, 25, 0.85);
+            color: rgba(255,255,255,0.9);
         }
         .timeline {
             margin-top: 1.25rem;
@@ -251,15 +280,15 @@
             gap: 1.1rem;
             padding: 1rem 1.1rem;
             border-radius: 1.1rem;
-            border: 1px solid rgba(15, 20, 25, 0.10);
-            background: rgba(15, 20, 25, 0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.04);
         }
         .timeline-year {
             font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             font-size: 0.85rem;
-            color: rgba(15, 20, 25, 0.75);
+            color: rgba(255,255,255,0.7);
         }
         .timeline-title {
             font-weight: 650;
@@ -269,7 +298,7 @@
         .timeline-copy {
             font-size: 0.95rem;
             line-height: 1.65;
-            color: rgba(15, 20, 25, 0.82);
+            color: rgba(255,255,255,0.85);
         }
         .objective-cards {
             margin-top: 1rem;
@@ -279,8 +308,8 @@
         .objective-card {
             padding: 1rem 1.05rem;
             border-radius: 1.1rem;
-            border: 1px solid rgba(15, 20, 25, 0.12);
-            background: rgba(15, 20, 25, 0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.04);
             display: grid;
             grid-template-columns: 42px 1fr;
             gap: 0.9rem;
@@ -293,20 +322,20 @@
             place-items: center;
             font-weight: 700;
             color: rgba(255, 255, 255, 0.92);
-            background: linear-gradient(135deg, #0f1419 0%, #2d4770 100%);
-            box-shadow: 0 10px 26px rgba(15, 20, 25, 0.22);
+            background: linear-gradient(135deg, #1a2332 0%, #2d4770 100%);
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
             user-select: none;
         }
         .objective-title {
             font-weight: 650;
             letter-spacing: 0.01em;
             margin-bottom: 0.2rem;
-            color: #0f1419;
+            color: #fff;
         }
         .objective-copy {
             font-size: 0.95rem;
             line-height: 1.65;
-            color: rgba(15, 20, 25, 0.82);
+            color: rgba(255,255,255,0.85);
         }
         .section-eyebrow {
             font-size: 0.8rem;
@@ -337,7 +366,7 @@
             margin-bottom: 0.75rem;
         }
         .section-swf .section-side-heading {
-            color: rgba(15, 20, 25, 0.65);
+            color: rgba(255,255,255,0.65);
         }
         .section-list {
             list-style: none;
@@ -356,18 +385,18 @@
         .stat-card {
             padding: 0.9rem 1rem;
             border-radius: 0.9rem;
-            background: radial-gradient(circle at top left, rgba(255,255,255,0.12), rgba(10,14,20,0.9));
+            background: linear-gradient(145deg, rgba(26, 35, 50, 0.8), rgba(22, 32, 42, 0.9));
             border: 1px solid rgba(255,255,255,0.12);
         }
         .section-swf .stat-card {
-            background: linear-gradient(145deg, rgba(15, 20, 25, 0.05), rgba(15, 20, 25, 0.02));
-            border: 1px solid rgba(15, 20, 25, 0.12);
+            background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            border: 1px solid rgba(255,255,255,0.12);
         }
         .section-swf .stat-value {
-            color: #0f1419;
+            color: #fff;
         }
         .section-swf .stat-label {
-            color: rgba(15, 20, 25, 0.65);
+            color: rgba(255,255,255,0.65);
         }
         .stat-value {
             font-size: 1.3rem;
@@ -389,11 +418,23 @@
         .funding-wrap {
             position: relative;
             border-radius: 1.4rem;
-            background: radial-gradient(circle at top left, rgba(255,255,255,0.11), rgba(10,14,20,0.93));
-            border: 1px solid rgba(255,255,255,0.14);
+            background: linear-gradient(135deg, rgba(26, 35, 50, 0.9) 0%, rgba(22, 32, 42, 0.95) 50%, rgba(26, 35, 50, 0.9) 100%);
+            border: 1px solid rgba(255,255,255,0.12);
             overflow: hidden;
             padding: 2.2rem 2.2rem 2.1rem;
         }
+        .funding-wrap::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 45%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent 0%, rgba(120, 80, 60, 0.18) 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .funding-wrap > * { position: relative; z-index: 1; }
         .funding-header {
             max-width: 520px;
             margin-bottom: 2rem;
@@ -407,8 +448,8 @@
             position: relative;
             padding: 1.2rem 1.25rem 1.25rem;
             border-radius: 1.2rem;
-            background: linear-gradient(155deg, rgba(255,255,255,0.12), rgba(10,14,20,0.92));
-            border: 1px solid rgba(255,255,255,0.14);
+            background: linear-gradient(155deg, rgba(26, 35, 50, 0.8), rgba(22, 32, 42, 0.9));
+            border: 1px solid rgba(255,255,255,0.12);
             overflow: hidden;
         }
         .funding-card::after {
@@ -457,8 +498,8 @@
             margin-bottom: 0.95rem;
         }
         .funding-card--primary {
-            border-color: rgba(255,255,255,0.22);
-            background: linear-gradient(155deg, rgba(255,255,255,0.14), rgba(45, 71, 112, 0.25), rgba(10,14,20,0.92));
+            border-color: rgba(255,255,255,0.2);
+            background: linear-gradient(155deg, rgba(45, 71, 112, 0.4), rgba(120, 80, 60, 0.2), rgba(22, 32, 42, 0.95));
         }
         .funding-card--primary .funding-pill {
             border-color: rgba(255,255,255,0.24);
@@ -490,10 +531,19 @@
         .committee-tree-wrap {
             position: relative;
             border-radius: 1.4rem;
-            background: radial-gradient(circle at top left, rgba(255,255,255,0.12), rgba(10,14,20,0.92));
-            border: 1px solid rgba(255,255,255,0.14);
+            background: linear-gradient(135deg, rgba(26, 35, 50, 0.9) 0%, rgba(22, 32, 42, 0.95) 50%, rgba(26, 35, 50, 0.9) 100%);
+            border: 1px solid rgba(255,255,255,0.12);
             overflow: hidden;
         }
+        .committee-tree-wrap::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent 30%, rgba(120, 80, 60, 0.08) 70%, transparent 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .committee-tree-wrap > * { position: relative; z-index: 1; }
         .committee-tree-scroll {
             max-height: 520px;
             overflow-y: auto;
@@ -615,8 +665,8 @@
         .program-card {
             padding: 1.2rem 1.3rem 1.1rem;
             border-radius: 1rem;
-            background: radial-gradient(circle at top left, rgba(255,255,255,0.13), rgba(10,14,20,0.9));
-            border: 1px solid rgba(255,255,255,0.14);
+            background: linear-gradient(155deg, rgba(26, 35, 50, 0.85), rgba(22, 32, 42, 0.9));
+            border: 1px solid rgba(255,255,255,0.12);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -660,7 +710,17 @@
             justify-content: center;
             font-size: 0.8rem;
             color: rgba(255,255,255,0.7);
+            position: relative;
         }
+        footer::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(120, 80, 60, 0.06) 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        footer > * { position: relative; z-index: 1; }
         .footer-logo {
             display: block;
             height: 40px;
@@ -748,6 +808,7 @@
         </div>
     </section>
 
+    <div class="page-gradient-wrap">
     <div class="container page-container">
         <section class="section-swf">
             <div>
@@ -915,6 +976,7 @@
                 Office Hours: Monday &ndash; Friday, 8:00 AM &ndash; 5:00 PM
             </div>
         </footer>
+    </div>
     </div>
 </body>
 </html>
