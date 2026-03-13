@@ -154,3 +154,20 @@ BEGIN
     VALUES (v_user_id, NEW.application_id, 'status_change', v_title, v_message, 0);
 END//
 DELIMITER ;
+
+-- Announcements table (admin-posted notices visible to all students)
+CREATE TABLE IF NOT EXISTS announcements (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title       VARCHAR(255)                          NOT NULL,
+    body        TEXT                                  NULL,
+    is_active   TINYINT(1)                            NOT NULL DEFAULT 1,
+    pinned      TINYINT(1)                            NOT NULL DEFAULT 0
+                COMMENT '1 = pinned to top of list',
+    created_by  INT UNSIGNED                          NULL
+                COMMENT 'FK to staff.id — NULL for seeded/system rows',
+    created_at  DATETIME                              NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at  DATETIME                              NULL
+                COMMENT 'NULL = never expires; set a date to auto-hide after that time',
+    FOREIGN KEY (created_by) REFERENCES staff(id) ON DELETE SET NULL,
+    INDEX idx_active_expires (is_active, expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Admin-posted announcements shown on the student dashboard';
