@@ -64,6 +64,32 @@ try {
     $stmt->execute([$userId]);
     $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {}
+
+// Announcements
+$announcements = [];
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS announcements (
+            id          INT AUTO_INCREMENT PRIMARY KEY,
+            title       VARCHAR(255) NOT NULL,
+            body        TEXT,
+            type        ENUM('info','warning','success') NOT NULL DEFAULT 'info',
+            is_active   TINYINT(1) NOT NULL DEFAULT 1,
+            pinned      TINYINT(1) NOT NULL DEFAULT 0,
+            created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            expires_at  DATETIME NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+    $stmt = $pdo->query("
+        SELECT id, title, body, type, pinned, created_at
+        FROM   announcements
+        WHERE  is_active = 1
+          AND  (expires_at IS NULL OR expires_at > NOW())
+        ORDER  BY pinned DESC, created_at DESC
+        LIMIT  10
+    ");
+    $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -520,6 +546,95 @@ try {
         .flash { padding: 0.75rem 1rem; border-radius: 12px; margin-bottom: 1rem; font-size: 0.9rem; }
         .flash-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
         .page-footer { text-align: right; padding: 1rem 0; margin-top: 2rem; font-size: 0.8rem; color: #9ca3af; }
+
+        /* ── Announcements ──────────────────────────────────── */
+        .announcements-section {
+            margin-top: 1.75rem;
+        }
+        .announcements-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .announcements-header h2 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .announcements-header h2 svg { width: 18px; height: 18px; color: #6b7280; }
+        .ann-count-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+            border-radius: 999px;
+            padding: 0.15rem 0.55rem;
+        }
+        .ann-list { display: flex; flex-direction: column; gap: 0.75rem; }
+        .ann-card {
+            border-radius: 16px;
+            padding: 1.1rem 1.35rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: box-shadow 0.15s, border-color 0.15s;
+            position: relative;
+            overflow: hidden;
+        }
+        .ann-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #d1d5db; }
+        .ann-card--info    { border-left: 4px solid #6366f1; }
+        .ann-card--warning { border-left: 4px solid #f59e0b; }
+        .ann-card--success { border-left: 4px solid #10b981; }
+        .ann-icon {
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .ann-icon svg { width: 20px; height: 20px; }
+        .ann-card--info    .ann-icon { background: rgba(99,102,241,0.1);  color: #6366f1; }
+        .ann-card--warning .ann-icon { background: rgba(245,158,11,0.1);  color: #d97706; }
+        .ann-card--success .ann-icon { background: rgba(16,185,129,0.1);  color: #059669; }
+        .ann-body { flex: 1; min-width: 0; }
+        .ann-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #111827;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+        .ann-pin {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #fff;
+            background: #f59e0b;
+            border-radius: 999px;
+            padding: 0.15rem 0.5rem;
+        }
+        .ann-text { font-size: 0.875rem; color: #4b5563; line-height: 1.55; }
+        .ann-date { font-size: 0.75rem; color: #9ca3af; margin-top: 0.4rem; }
+        .ann-empty {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            border-radius: 16px;
+            background: #ffffff;
+            border: 1px dashed #e5e7eb;
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+        .ann-empty svg { width: 36px; height: 36px; margin: 0 auto 0.75rem; display: block; opacity: 0.35; }
     </style>
 </head>
 <body>
@@ -535,6 +650,7 @@ try {
                 <a href="appInformation.php"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Application info</a>
                 <a href="application.php"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Application form</a>
                 <a href="history.php"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>View history</a>
+                <a href="annoucement.php" style="display:flex;align-items:center;gap:0.75rem;justify-content:flex-start"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>Announcements<?php if (count($announcements) > 0): ?><span style="margin-left:auto;font-size:0.7rem;font-weight:700;background:#6366f1;color:#fff;border-radius:999px;padding:0.1rem 0.45rem"><?php echo count($announcements); ?></span><?php endif; ?></a>
                 <a href="profile.php"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>Profile</a>
             </nav>
             <div class="sidebar-footer">
@@ -650,6 +766,55 @@ try {
             </div>
 
         </main>
+
+        <!-- ══ ANNOUNCEMENTS SECTION ══ -->
+        <section class="announcements-section" id="announcements">
+            <div class="announcements-header">
+                <h2>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+                    Announcements
+                    <?php if (!empty($announcements)): ?>
+                        <span class="ann-count-badge"><?php echo count($announcements); ?></span>
+                    <?php endif; ?>
+                </h2>
+            </div>
+
+            <?php if (empty($announcements)): ?>
+                <div class="ann-empty">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.006 6.006 0 00-4.949-5.893A3.5 3.5 0 009.05 5.1M15 17v1a3 3 0 01-6 0v-1m6 0H9"/></svg>
+                    No announcements at the moment. Check back soon!
+                </div>
+            <?php else: ?>
+                <div class="ann-list">
+                    <?php foreach ($announcements as $ann):
+                        $type = htmlspecialchars($ann['type']);
+                        $icons = [
+                            'info'    => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+                            'warning' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>',
+                            'success' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+                        ];
+                        $iconPath = $icons[$ann['type']] ?? $icons['info'];
+                    ?>
+                    <div class="ann-card ann-card--<?php echo $type; ?>">
+                        <div class="ann-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><?php echo $iconPath; ?></svg>
+                        </div>
+                        <div class="ann-body">
+                            <div class="ann-title">
+                                <?php echo htmlspecialchars($ann['title']); ?>
+                                <?php if ((int)$ann['pinned']): ?><span class="ann-pin">📌 Pinned</span><?php endif; ?>
+                            </div>
+                            <?php if (!empty($ann['body'])): ?>
+                                <div class="ann-text"><?php echo nl2br(htmlspecialchars($ann['body'])); ?></div>
+                            <?php endif; ?>
+                            <div class="ann-date"><?php echo date('d M Y, g:i A', strtotime($ann['created_at'])); ?></div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </section>
+
             <footer class="page-footer">© University Kuala Lumpur Royal College of Medicine Perak</footer>
         </div>
     </div>
