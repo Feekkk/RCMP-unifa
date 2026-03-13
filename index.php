@@ -51,6 +51,14 @@
             80% { opacity: 1; }
             100% { top: 120%; opacity: 0; }
         }
+        @keyframes heroTitleShine {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 220% 50%; }
+        }
+        @keyframes heroTitleGlow {
+            0%, 100% { filter: drop-shadow(0 0 14px rgba(255,255,255,0.18)) drop-shadow(0 0 22px rgba(220,179,138,0.18)); }
+            50% { filter: drop-shadow(0 0 18px rgba(255,255,255,0.28)) drop-shadow(0 0 34px rgba(220,179,138,0.26)); }
+        }
 
         .animate-in {
             animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
@@ -184,6 +192,25 @@
             -webkit-text-fill-color: transparent;
             margin-bottom: 1.25rem;
             letter-spacing: -0.02em;
+        }
+        .hero-title--shiny {
+            background-image: linear-gradient(
+                110deg,
+                #ffffff 0%,
+                #ffffff 28%,
+                rgba(255,255,255,0.65) 38%,
+                #ffd9b4 45%,
+                #ffffff 52%,
+                rgba(220,179,138,0.85) 64%,
+                #ffffff 78%,
+                #ffffff 100%
+            );
+            background-size: 260% 100%;
+            animation: heroTitleShine 3.2s linear infinite, heroTitleGlow 2.6s ease-in-out infinite;
+            will-change: background-position, filter;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .hero-title--shiny { animation: none; }
         }
         .hero-tagline {
             font-size: 1.2rem;
@@ -670,7 +697,7 @@
             <div class="home-hero-content">
                 <div class="hero-grid">
                     <div class="hero-left-content animate-in delay-1">
-                        <h1 class="hero-title">RCMP UniFa</h1>
+                        <h1 class="hero-title hero-title--shiny">RCMP UniFa</h1>
                         <p class="hero-tagline">UniKL Financial Aid System — Supporting Student Success</p>
                     </div>
                     <div class="hero-right-content animate-in delay-2">
