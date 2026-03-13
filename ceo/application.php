@@ -32,20 +32,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->beginTransaction();
                 $placeholders = implode(',', array_fill(0, count($cleanIds), '?'));
 
-                // Lock rows that are still pending CEO approval
-                $stmt = $pdo->prepare("SELECT id FROM applications WHERE status_id = 6 AND id IN ($placeholders) FOR UPDATE");
+                // Fetch which of the submitted IDs are actually still at status_id=6
+                $stmt = $pdo->prepare("SELECT id FROM applications WHERE status_id = 6 AND id IN ($placeholders)");
                 $stmt->execute($cleanIds);
-                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                $okIds = array_map(fn($r) => (int) $r['id'], $rows);
+                $okIds = array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'id');
 
                 if (!empty($okIds)) {
-                    $ph2 = implode(',', array_fill(0, count($okIds), '?'));
-                    $stmt = $pdo->prepare("UPDATE applications SET status_id = 3 WHERE status_id = 6 AND id IN ($ph2)");
-                    $stmt->execute($okIds);
-
-                    $hist = $pdo->prepare('INSERT INTO application_history (application_id, from_status_id, to_status_id, staff_id, action, notes) VALUES (?, 6, 3, ?, ?, NULL)');
+                    $updateStmt = $pdo->prepare('UPDATE applications SET status_id = 3 WHERE id = ? AND status_id = 6');
+                    $histStmt   = $pdo->prepare("INSERT INTO application_history (application_id, from_status_id, to_status_id, staff_id, action, notes) VALUES (?, 6, 3, ?, 'ceo_approve', NULL)");
                     foreach ($okIds as $appId) {
-                        $hist->execute([(int) $appId, $ceoId ?: null, 'ceo_approve']);
+                        $appId = (int) $appId;
+                        $updateStmt->execute([$appId]);
+                        $histStmt->execute([$appId, $ceoId ?: null]);
                     }
                 }
 
@@ -54,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             } catch (PDOException $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
+                $_SESSION['_bulk_err'] = $e->getMessage();
                 header('Location: application.php?m=error');
                 exit;
             }
@@ -210,8 +209,11 @@ function fmtCategory($c) {
                 <div style="padding:1rem;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;margin-bottom:1.5rem;color:#b91c1c;font-size:0.9rem;">Database error: <?php echo htmlspecialchars($dbError); ?></div>
             <?php endif; ?>
 
-            <?php if ($msg === 'approved'): ?><div class="flash flash-success">Selected applications approved.</div><?php endif; ?>
-            <?php if ($msg === 'error'): ?><div class="flash flash-error">Could not approve. Please try again.</div><?php endif; ?>
+            <?php if ($msg === 'approved'): ?><div class="flash flash-success">Selected applications approved successfully.</div><?php endif; ?>
+            <?php if ($msg === 'error'):
+                $bulkErr = $_SESSION['_bulk_err'] ?? '';
+                unset($_SESSION['_bulk_err']);
+            ?><div class="flash flash-error">Could not approve.<?php if ($bulkErr): ?> Error: <?php echo htmlspecialchars($bulkErr); ?><?php endif; ?></div><?php endif; ?>
 
             <form method="get" action="application.php" class="search-bar">
                 <input type="hidden" name="page" value="1">
@@ -226,6 +228,7 @@ function fmtCategory($c) {
                 <?php else: ?>
                     <form method="post" id="bulkApproveForm" onsubmit="return confirm('Approve selected applications?');">
                         <input type="hidden" name="action" value="bulk_approve">
+                        <div>
                         <div class="bulk-bar" style="padding:0.85rem 0.9rem;border-bottom:1px solid #e5e7eb;background:linear-gradient(180deg,#ffffff 0%, #fafafa 100%);">
                             <div class="bulk-left">
                                 <label style="display:inline-flex;align-items:center;gap:0.55rem;cursor:pointer;">
@@ -239,6 +242,7 @@ function fmtCategory($c) {
                                 <button type="submit" class="btn-approve" id="approveSelected" disabled>Approve selected</button>
                             </div>
                         </div>
+                    <div class="table-scroll">
                     <table>
                         <thead>
                             <tr>
@@ -269,6 +273,8 @@ function fmtCategory($c) {
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                    </div>
+                    </div>
                     </form>
                     <?php if ($maxPage > 1): ?>
                         <div class="pagination-info">Showing <?php echo $offset + 1; ?>–<?php echo min($offset + $perPage, $total); ?> of <?php echo $total; ?></div>
