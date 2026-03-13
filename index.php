@@ -45,6 +45,12 @@
             0% { opacity: 0.4; filter: blur(60px) scale(1); }
             100% { opacity: 0.7; filter: blur(80px) scale(1.1); }
         }
+        @keyframes flowLight {
+            0% { top: -20%; opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { top: 120%; opacity: 0; }
+        }
 
         .animate-in {
             animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
@@ -280,16 +286,118 @@
             line-height: 1.7;
         }
 
-        /* Grid Layouts */
-        .section-swf {
-            display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            gap: 4rem;
+        /* Grid Layouts — legacy swf removed; sections are now separate */
+
+        /* ── Vertical Timeline ─────────────────────────────────── */
+        @keyframes timelineDotPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(220,179,138,0.5); }
+            50%       { box-shadow: 0 0 0 8px rgba(220,179,138,0); }
+        }
+        @keyframes lineGrow {
+            from { transform: scaleY(0); }
+            to   { transform: scaleY(1); }
         }
 
-        /* Timeline Items */
-        .timeline { display: grid; gap: 1.25rem; }
-        .timeline-item, .objective-card, .funding-card, .committee-node {
+        .timeline-section { position: relative; }
+
+        .vtimeline {
+            position: relative;
+            padding: 0.5rem 0 0.5rem 2.5rem;
+            margin-top: 2.5rem;
+        }
+        /* the running vertical line */
+        .vtimeline::before {
+            content: '';
+            position: absolute;
+            left: 11px;
+            top: 0; bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom,
+                transparent 0%,
+                rgba(220,179,138,0.6) 15%,
+                rgba(220,179,138,0.6) 85%,
+                transparent 100%);
+            transform-origin: top;
+            animation: lineGrow 1.2s cubic-bezier(0.2,0.8,0.2,1) forwards;
+        }
+
+        .vtimeline-item {
+            position: relative;
+            margin-bottom: 2.5rem;
+        }
+        .vtimeline-item:last-child { margin-bottom: 0; }
+
+        /* glowing dot node */
+        .vtimeline-dot {
+            position: absolute;
+            left: -2.5rem;
+            top: 1.45rem;
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 3px solid var(--bg-base);
+            box-shadow: 0 0 0 2px var(--accent);
+            animation: timelineDotPulse 2.4s ease-in-out infinite;
+            z-index: 2;
+        }
+        /* Each item's dot gets a staggered pulse delay */
+        .vtimeline-item:nth-child(2) .vtimeline-dot { animation-delay: 0.8s; }
+        .vtimeline-item:nth-child(3) .vtimeline-dot { animation-delay: 1.6s; }
+
+        .vtimeline-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-light);
+            border-radius: 1.25rem;
+            padding: 1.5rem 1.75rem;
+            transition: all 0.35s cubic-bezier(0.2,0.8,0.2,1);
+            position: relative;
+            overflow: hidden;
+        }
+        .vtimeline-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(220,179,138,0.25), transparent);
+        }
+        .vtimeline-card:hover {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(220,179,138,0.35);
+            transform: translateX(6px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35), -4px 0 0 var(--accent);
+        }
+
+        .vtimeline-year {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--accent);
+            background: rgba(220,179,138,0.08);
+            border: 1px solid rgba(220,179,138,0.2);
+            border-radius: 99px;
+            padding: 0.3rem 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+        .vtimeline-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
+        }
+        .vtimeline-copy {
+            color: var(--text-secondary);
+            font-size: 0.97rem;
+            line-height: 1.65;
+        }
+
+        /* ── Objective Cards ───────────────────────────────────── */
+        .objective-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+        .objective-card, .funding-card, .committee-node {
             background: rgba(255,255,255,0.02);
             border: 1px solid var(--border-light);
             border-radius: 1rem;
@@ -297,68 +405,44 @@
             position: relative;
             overflow: hidden;
         }
-        .timeline-item:hover, .objective-card:hover, .funding-card:hover, .committee-node:hover {
+        .objective-card:hover, .funding-card:hover, .committee-node:hover {
             background: rgba(255,255,255,0.04);
             border-color: var(--border-highlight);
             transform: translateY(-4px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
-        .timeline-item {
-            display: grid;
-            grid-template-columns: 90px 1fr;
-            gap: 1.5rem;
-            padding: 1.25rem 1.5rem;
-        }
-        .timeline-year {
-            font-family: 'Outfit', sans-serif;
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--accent);
-            letter-spacing: 0.05em;
-        }
-        .timeline-title {
-            font-family: 'Outfit', sans-serif;
-            font-weight: 600;
-            font-size: 1.15rem;
-            margin-bottom: 0.25rem;
-            color: var(--text-primary);
-        }
-        .timeline-copy {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-
-        /* Objective Cards */
-        .objective-cards { display: grid; gap: 1.25rem; }
         .objective-card {
-            display: grid;
-            grid-template-columns: 48px 1fr;
-            gap: 1.25rem;
-            padding: 1.25rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 2rem 1.75rem;
         }
         .objective-icon, .committee-node-badge {
-            width: 48px; height: 48px;
-            border-radius: 14px;
+            width: 52px; height: 52px;
+            border-radius: 16px;
             display: flex; align-items: center; justify-content: center;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
-            border: 1px solid var(--border-light);
+            background: linear-gradient(135deg, rgba(220,179,138,0.18), rgba(255,255,255,0.03));
+            border: 1px solid rgba(220,179,138,0.25);
             font-family: 'Outfit', sans-serif;
             font-weight: 700;
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             color: var(--accent);
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
         }
         .objective-title {
             font-family: 'Outfit', sans-serif;
             font-weight: 600;
-            font-size: 1.15rem;
-            margin-bottom: 0.25rem;
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
             color: var(--text-primary);
         }
         .objective-copy {
             color: var(--text-secondary);
             font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        @media (max-width: 900px) {
+            .objective-cards { grid-template-columns: 1fr; }
         }
 
         /* Funding Section */
@@ -485,15 +569,26 @@
         .committee-connector {
             width: 2px;
             height: 32px;
-            background: linear-gradient(to bottom, var(--border-highlight), transparent);
+            background: rgba(255,255,255,0.05); /* very dim track */
             margin: -2rem auto 0;
             position: relative;
+            overflow: hidden; /* Hide the light when outside */
+        }
+        .committee-connector::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 15px; /* length of the light tail */
+            background: linear-gradient(to bottom, transparent, var(--border-highlight) 70%, #ffffff 100%);
+            animation: flowLight 2s infinite linear;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
         .committee-connector::after {
             content: ''; position: absolute; top: 0; left: 50%;
             width: 8px; height: 8px; border-radius: 50%;
             background: var(--border-highlight);
             transform: translate(-50%, -50%);
+            z-index: 2;
         }
 
         /* Footer */
@@ -590,59 +685,70 @@
     <div class="page-gradient-wrap">
         <div class="container page-container">
             
-            <section class="section-swf glass-pane animate-in delay-3">
-                <div>
-                    <div class="section-eyebrow">History</div>
-                    <h2 class="section-title">Student Welfare Fund (SWF)</h2>
-                    <p class="section-body">A quick timeline of how the fund began, evolved, and is managed today.</p>
-                    <div class="timeline" role="list">
-                        <div class="timeline-item" role="listitem">
-                            <div class="timeline-year">2005</div>
-                            <div>
-                                <div class="timeline-title">Established as TKS</div>
-                                <div class="timeline-copy">Tabung Kebajikan Siswa (TKS) was established on 30 September 2005, endorsed and approved by UniKL management.</div>
-                            </div>
-                        </div>
-                        <div class="timeline-item" role="listitem">
-                            <div class="timeline-year">2017</div>
-                            <div>
-                                <div class="timeline-title">Rebranded to SWF</div>
-                                <div class="timeline-copy">TKS was rebranded to Student Welfare Fund (SWF) on 12 December 2017 to strengthen welfare support for students.</div>
-                            </div>
-                        </div>
-                        <div class="timeline-item" role="listitem">
-                            <div class="timeline-year">2018</div>
-                            <div>
-                                <div class="timeline-title">Operational governance</div>
-                                <div class="timeline-copy">Approved on TMM 30 January 2018, with operations managed by the Campus Lifestyle Division.</div>
-                            </div>
+            <!-- ═══ HISTORY — Full-width vertical timeline ═══ -->
+            <section class="timeline-section glass-pane animate-in delay-3" id="history">
+                <div class="section-eyebrow">History</div>
+                <h2 class="section-title">Student Welfare Fund (SWF)</h2>
+                <p class="section-body" style="max-width:680px;">A timeline of how the fund was born, grew, and is governed today.</p>
+
+                <div class="vtimeline" role="list">
+
+                    <div class="vtimeline-item" role="listitem">
+                        <span class="vtimeline-dot" aria-hidden="true"></span>
+                        <div class="vtimeline-card">
+                            <div class="vtimeline-year">&#x25CF;&ensp;2005</div>
+                            <div class="vtimeline-title">Established as TKS</div>
+                            <div class="vtimeline-copy">Tabung Kebajikan Siswa (TKS) was established on 30 September 2005, endorsed and approved by UniKL management as a dedicated student welfare initiative.</div>
                         </div>
                     </div>
+
+                    <div class="vtimeline-item" role="listitem">
+                        <span class="vtimeline-dot" aria-hidden="true"></span>
+                        <div class="vtimeline-card">
+                            <div class="vtimeline-year">&#x25CF;&ensp;2017</div>
+                            <div class="vtimeline-title">Rebranded to SWF</div>
+                            <div class="vtimeline-copy">TKS was officially rebranded to Student Welfare Fund (SWF) on 12 December 2017, reinforcing its mission to strengthen welfare support for all students.</div>
+                        </div>
+                    </div>
+
+                    <div class="vtimeline-item" role="listitem">
+                        <span class="vtimeline-dot" aria-hidden="true"></span>
+                        <div class="vtimeline-card">
+                            <div class="vtimeline-year">&#x25CF;&ensp;2018</div>
+                            <div class="vtimeline-title">Operational Governance Formalised</div>
+                            <div class="vtimeline-copy">Approved at TMM on 30 January 2018. Day-to-day operations are now managed and overseen by the Campus Lifestyle Division.</div>
+                        </div>
+                    </div>
+
                 </div>
-                <div>
-                    <div class="section-side-heading">SWF UniKLRCMP Objectives</div>
-                    <p class="section-body">Focused support designed to protect student wellbeing and help you stay on track academically.</p>
-                    <div class="objective-cards">
-                        <div class="objective-card">
-                            <div class="objective-icon">1</div>
-                            <div>
-                                <div class="objective-title">Emergency &amp; crisis support</div>
-                                <div class="objective-copy">Fast assistance for urgent situations that impact safety, accommodation, food, or immediate necessities.</div>
-                            </div>
+            </section>
+
+            <!-- ═══ OBJECTIVES — Separate full-width section ═══ -->
+            <section class="glass-pane animate-in delay-3" id="objectives">
+                <div class="section-eyebrow">Objectives</div>
+                <h2 class="section-title">SWF UniKL RCMP Objectives</h2>
+                <p class="section-body" style="max-width:680px; margin-bottom:2.5rem;">Focused support designed to protect student wellbeing and help you stay on track academically.</p>
+
+                <div class="objective-cards">
+                    <div class="objective-card">
+                        <div class="objective-icon">1</div>
+                        <div>
+                            <div class="objective-title">Emergency &amp; Crisis Support</div>
+                            <div class="objective-copy">Fast assistance for urgent situations that impact safety, accommodation, food, or immediate necessities.</div>
                         </div>
-                        <div class="objective-card">
-                            <div class="objective-icon">2</div>
-                            <div>
-                                <div class="objective-title">Medical &amp; injury assistance</div>
-                                <div class="objective-copy">Support related to medical conditions or injuries, including cases that require quick intervention.</div>
-                            </div>
+                    </div>
+                    <div class="objective-card">
+                        <div class="objective-icon">2</div>
+                        <div>
+                            <div class="objective-title">Medical &amp; Injury Assistance</div>
+                            <div class="objective-copy">Support related to medical conditions or injuries, including cases that require quick intervention.</div>
                         </div>
-                        <div class="objective-card">
-                            <div class="objective-icon">3</div>
-                            <div>
-                                <div class="objective-title">Bereavement &amp; compassionate aid</div>
-                                <div class="objective-copy">Help for students facing bereavement or family hardship, to reduce financial stress during difficult periods.</div>
-                            </div>
+                    </div>
+                    <div class="objective-card">
+                        <div class="objective-icon">3</div>
+                        <div>
+                            <div class="objective-title">Bereavement &amp; Compassionate Aid</div>
+                            <div class="objective-copy">Help for students facing bereavement or family hardship, to reduce financial stress during difficult periods.</div>
                         </div>
                     </div>
                 </div>
@@ -658,7 +764,7 @@
                         <div class="funding-pill">Local student</div>
                         <div class="funding-price">
                             <span class="funding-currency">RM</span>
-                            <span class="funding-amount">30.00</span>
+                            <span class="funding-amount" data-target="30">0.00</span>
                         </div>
                         <div class="funding-period">Every semester</div>
                         <p class="funding-body">SWF fee collected from registered local students each semester.</p>
@@ -667,7 +773,7 @@
                         <div class="funding-pill">International student</div>
                         <div class="funding-price">
                             <span class="funding-currency">RM</span>
-                            <span class="funding-amount">50.00</span>
+                            <span class="funding-amount" data-target="50">0.00</span>
                         </div>
                         <div class="funding-period">Every semester</div>
                         <p class="funding-body">SWF fee collected from registered international students each semester.</p>
@@ -752,5 +858,52 @@
             </div>
         </footer>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+
+            const animateCounter = (element) => {
+                const target = +element.getAttribute('data-target');
+                const duration = 2000; // 2 seconds
+                const startTime = performance.now();
+
+                const updateCounter = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // easeOutQuart
+                    const easeProgress = 1 - Math.pow(1 - progress, 4);
+                    
+                    const currentVal = (easeProgress * target).toFixed(2);
+                    element.textContent = currentVal;
+
+                    if (progress < 1) {
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        element.textContent = target.toFixed(2);
+                    }
+                };
+
+                requestAnimationFrame(updateCounter);
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateCounter(entry.target);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            const counterElements = document.querySelectorAll('.funding-amount');
+            counterElements.forEach(el => observer.observe(el));
+        });
+    </script>
 </body>
 </html>
