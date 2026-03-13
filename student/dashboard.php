@@ -81,7 +81,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
     $stmt = $pdo->query("
-        SELECT id, title, body, type, pinned, created_at
+        SELECT id, title, body, pinned, created_at
         FROM   announcements
         WHERE  is_active = 1
           AND  (expires_at IS NULL OR expires_at > NOW())
@@ -590,19 +590,16 @@ try {
             overflow: hidden;
         }
         .ann-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #d1d5db; }
-        .ann-card--info    { border-left: 4px solid #6366f1; }
-        .ann-card--warning { border-left: 4px solid #f59e0b; }
-        .ann-card--success { border-left: 4px solid #10b981; }
+        .ann-card { border-left: 4px solid #6366f1; }
         .ann-icon {
             width: 38px; height: 38px;
             border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
+            background: rgba(99,102,241,0.1);
+            color: #6366f1;
         }
         .ann-icon svg { width: 20px; height: 20px; }
-        .ann-card--info    .ann-icon { background: rgba(99,102,241,0.1);  color: #6366f1; }
-        .ann-card--warning .ann-icon { background: rgba(245,158,11,0.1);  color: #d97706; }
-        .ann-card--success .ann-icon { background: rgba(16,185,129,0.1);  color: #059669; }
         .ann-body { flex: 1; min-width: 0; }
         .ann-title {
             font-weight: 600;
@@ -786,18 +783,10 @@ try {
                 </div>
             <?php else: ?>
                 <div class="ann-list">
-                    <?php foreach ($announcements as $ann):
-                        $type = htmlspecialchars($ann['type']);
-                        $icons = [
-                            'info'    => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
-                            'warning' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>',
-                            'success' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>',
-                        ];
-                        $iconPath = $icons[$ann['type']] ?? $icons['info'];
-                    ?>
-                    <div class="ann-card ann-card--<?php echo $type; ?>">
+                    <?php foreach ($announcements as $ann): ?>
+                    <div class="ann-card">
                         <div class="ann-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><?php echo $iconPath; ?></svg>
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
                         </div>
                         <div class="ann-body">
                             <div class="ann-title">

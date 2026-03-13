@@ -18,7 +18,6 @@ try {
             id          INT AUTO_INCREMENT PRIMARY KEY,
             title       VARCHAR(255) NOT NULL,
             body        TEXT,
-            type        ENUM('info','warning','success') NOT NULL DEFAULT 'info',
             is_active   TINYINT(1) NOT NULL DEFAULT 1,
             pinned      TINYINT(1) NOT NULL DEFAULT 0,
             created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -26,7 +25,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
     $stmt = $pdo->query("
-        SELECT id, title, body, type, pinned, created_at
+        SELECT id, title, body, pinned, created_at
         FROM   announcements
         WHERE  is_active = 1
           AND  (expires_at IS NULL OR expires_at > NOW())
@@ -197,28 +196,14 @@ try {
             border-color: #d1d5db;
             transform: translateY(-2px);
         }
-        /* Accent left border by type */
-        .ann-card--info    { border-left: 5px solid #6366f1; }
-        .ann-card--warning { border-left: 5px solid #f59e0b; }
-        .ann-card--success { border-left: 5px solid #10b981; }
+        /* Accent left border */
+        .ann-card { border-left: 5px solid #6366f1; }
 
         /* Subtle bg tint */
-        .ann-card--info::before {
+        .ann-card::before {
             content: '';
             position: absolute; top: 0; right: 0; width: 35%; height: 100%;
             background: radial-gradient(circle at 100% 50%, rgba(99,102,241,0.04), transparent 70%);
-            pointer-events: none;
-        }
-        .ann-card--warning::before {
-            content: '';
-            position: absolute; top: 0; right: 0; width: 35%; height: 100%;
-            background: radial-gradient(circle at 100% 50%, rgba(245,158,11,0.04), transparent 70%);
-            pointer-events: none;
-        }
-        .ann-card--success::before {
-            content: '';
-            position: absolute; top: 0; right: 0; width: 35%; height: 100%;
-            background: radial-gradient(circle at 100% 50%, rgba(16,185,129,0.04), transparent 70%);
             pointer-events: none;
         }
 
@@ -227,11 +212,10 @@ try {
             border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
+            background: rgba(99,102,241,0.1);
+            color: #6366f1;
         }
         .ann-icon svg { width: 22px; height: 22px; }
-        .ann-card--info    .ann-icon { background: rgba(99,102,241,0.1);  color: #6366f1; }
-        .ann-card--warning .ann-icon { background: rgba(245,158,11,0.1);  color: #d97706; }
-        .ann-card--success .ann-icon { background: rgba(16,185,129,0.1);  color: #059669; }
 
         .ann-body { flex: 1; min-width: 0; }
         .ann-title {
@@ -254,17 +238,6 @@ try {
             border-radius: 999px;
             padding: 0.15rem 0.55rem;
         }
-        .ann-type-badge {
-            font-size: 0.68rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            border-radius: 999px;
-            padding: 0.15rem 0.55rem;
-        }
-        .ann-type-badge--info    { background: rgba(99,102,241,0.1);  color: #6366f1; }
-        .ann-type-badge--warning { background: rgba(245,158,11,0.12); color: #d97706; }
-        .ann-type-badge--success { background: rgba(16,185,129,0.1);  color: #059669; }
 
         .ann-text {
             font-size: 0.92rem;
@@ -402,21 +375,10 @@ try {
                 </div>
             <?php else: ?>
                 <div class="ann-list">
-                    <?php
-                    $icons = [
-                        'info'    => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
-                        'warning' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>',
-                        'success' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>',
-                    ];
-                    $typeLabels = ['info' => 'Info', 'warning' => 'Notice', 'success' => 'Update'];
-                    foreach ($announcements as $ann):
-                        $t = $ann['type'];
-                        $iconPath = $icons[$t] ?? $icons['info'];
-                        $typeLabel = $typeLabels[$t] ?? 'Info';
-                    ?>
-                    <div class="ann-card ann-card--<?php echo htmlspecialchars($t); ?>">
+                    <?php foreach ($announcements as $ann): ?>
+                    <div class="ann-card">
                         <div class="ann-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><?php echo $iconPath; ?></svg>
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
                         </div>
                         <div class="ann-body">
                             <div class="ann-title">
@@ -424,7 +386,6 @@ try {
                                 <?php if ((int)$ann['pinned']): ?>
                                     <span class="ann-pin">📌 Pinned</span>
                                 <?php endif; ?>
-                                <span class="ann-type-badge ann-type-badge--<?php echo htmlspecialchars($t); ?>"><?php echo $typeLabel; ?></span>
                             </div>
                             <?php if (!empty($ann['body'])): ?>
                                 <div class="ann-text"><?php echo htmlspecialchars($ann['body']); ?></div>
