@@ -1,4 +1,5 @@
-database/migrate.sql
 public/documents/
 application.txt
 database/database.php
+services/
+note.txt
