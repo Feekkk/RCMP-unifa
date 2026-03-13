@@ -657,7 +657,7 @@
         <div class="container" style="display: flex; flex-direction: column; flex: 1;">
             <header class="animate-in">
                 <span class="logo">
-                    <img src="public/official-logo.png" alt="UniKL RCMP logo" class="logo-mark">
+                    <img src="public/unikl-white.png" alt="UniKL RCMP logo" class="logo-mark">
                 </span>
                 <div class="header-right">
                     <div class="auth-actions">
