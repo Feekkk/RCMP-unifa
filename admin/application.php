@@ -38,10 +38,15 @@ try {
         $params[] = $selectedStatus;
     }
     if ($search !== '') {
-        $where[] = '(u.full_name LIKE ? OR (ctype_digit(?) AND a.user_id = ?))';
-        $params[] = '%' . $search . '%';
-        $params[] = $search;
-        $params[] = ctype_digit($search) ? (int) $search : 0;
+        $isId = ctype_digit($search);
+        if ($isId) {
+            $where[] = '(a.user_id = ? OR u.full_name LIKE ?)';
+            $params[] = (int) $search;
+            $params[] = '%' . $search . '%';
+        } else {
+            $where[] = 'u.full_name LIKE ?';
+            $params[] = '%' . $search . '%';
+        }
     }
     $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
 
@@ -268,7 +273,14 @@ function build_list_url(int $status, int $page, string $search): string {
             </form>
 
             <?php
-                $title = $selectedStatus <= 0 ? 'Recent applications' : status_label(array_values(array_filter($statusRows, fn($x) => (int)($x['id'] ?? 0) === $selectedStatus))[0]['name'] ?? 'Applications');
+                $titleStatus = null;
+                foreach ($statusRows as $x) {
+                    if ((int)($x['id'] ?? 0) === $selectedStatus) {
+                        $titleStatus = $x;
+                        break;
+                    }
+                }
+                $title = $selectedStatus <= 0 ? 'Recent applications' : status_label($titleStatus['name'] ?? 'Applications');
                 $maxPage = max(1, (int) ceil($total / $perPage));
             ?>
             <section class="status-section">
