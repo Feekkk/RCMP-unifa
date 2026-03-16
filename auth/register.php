@@ -355,11 +355,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="grid-two">
                     <div class="field">
                         <label for="course">Course</label>
-                        <input type="text" id="course" name="course" placeholder="e.g. Medicine, Pharmacy" value="<?php echo isset($course) ? htmlspecialchars($course, ENT_QUOTES, 'UTF-8') : ''; ?>">
+                        <input
+                            type="text"
+                            id="course"
+                            name="course"
+                            placeholder="Type your course or pick below"
+                            list="course_list"
+                            value="<?php echo isset($course) ? htmlspecialchars($course, ENT_QUOTES, 'UTF-8') : ''; ?>"
+                        >
+                        <datalist id="course_list">
+                            <option value="Diploma in Nursing">
+                            <option value="Diploma in Pharmacy">
+                            <option value="Diploma in Physiotherapy">
+                            <option value="Diploma in Medical Imaging">
+                            <option value="Bachelor of Medicine and Bachelor of Surgery (MBBS)">
+                            <option value="Bachelor of Pharmacy (Hons)">
+                            <option value="Bachelor of Science (Hons) in Pharmaceutical Technology">
+                            <option value="Bachelor of Physiotherapy (Hons)">
+                            <option value="Bachelor of Nursing Science (Hons)">
+                            <option value="Bachelor of Science in Psychology (Hons)">
+                            <option value="Master of Medical Science">
+                            <option value="Master of Science (Pharmacy)">
+                            <option value="Master of Public Health">
+                            <option value="Master of Science in Public Health">
+                            <option value="Doctor of Philosophy (Medical Science)">
+                            <option value="Doctor of Philosophy (Pharmacy)">
+                        </datalist>
                     </div>
                     <div class="field">
-                        <label for="year">Year</label>
-                        <input type="text" id="year" name="year" placeholder="e.g. Year 1, Year 2" value="<?php echo isset($year) ? htmlspecialchars($year, ENT_QUOTES, 'UTF-8') : ''; ?>">
+                        <label for="year">Semester/Year</label>
+                        <select id="semester_select" class="year-semester-select" name="year">
+                            <option value="">Select semester (1–8)</option>
+                            <?php for ($i = 1; $i <= 8; $i++): ?>
+                                <option value="<?php echo 'Semester ' . $i; ?>" <?php echo (isset($year) && $year === 'Semester ' . $i) ? 'selected' : ''; ?>>
+                                    <?php echo 'Semester ' . $i; ?>
+                                </option>
+                            <?php endfor; ?>
+                        </select>
+                        <select id="year_select" class="year-semester-select" style="display:none;">
+                            <option value="">Select year</option>
+                            <?php for ($i = 1; $i <= 5; $i++): ?>
+                                <option value="<?php echo 'Year ' . $i; ?>" <?php echo (isset($year) && $year === 'Year ' . $i) ? 'selected' : ''; ?>>
+                                    <?php echo 'Year ' . $i; ?>
+                                </option>
+                            <?php endfor; ?>
+                        </select>
                     </div>
                 </div>
 
@@ -400,5 +440,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
         </div>
     </div>
+    <script>
+        (function () {
+            const courseInput = document.getElementById('course');
+            const semesterSelect = document.getElementById('semester_select');
+            const yearSelect = document.getElementById('year_select');
+
+            if (!courseInput || !semesterSelect || !yearSelect) return;
+
+            function isMbbsCourse(value) {
+                if (!value) return false;
+                const v = value.toLowerCase();
+                return v.includes('mbbs') || v.includes('bachelor of medicine and bachelor of surgery');
+            }
+
+            function updateYearSemesterField() {
+                const value = courseInput.value || '';
+                const mbbs = isMbbsCourse(value);
+
+                if (mbbs) {
+                    semesterSelect.style.display = 'none';
+                    semesterSelect.removeAttribute('name');
+                    yearSelect.style.display = '';
+                    yearSelect.name = 'year';
+                } else {
+                    yearSelect.style.display = 'none';
+                    yearSelect.removeAttribute('name');
+                    semesterSelect.style.display = '';
+                    semesterSelect.name = 'year';
+                }
+            }
+
+            courseInput.addEventListener('input', updateYearSemesterField);
+            courseInput.addEventListener('change', updateYearSemesterField);
+
+            updateYearSemesterField();
+        })();
+    </script>
 </body>
 </html>
