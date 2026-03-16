@@ -1,6 +1,6 @@
 public/documents/
 application.txt
-database/database.php
+database/
 services/
 note.txt
 PHPmailer
