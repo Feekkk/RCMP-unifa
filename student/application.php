@@ -112,10 +112,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $docTypes = ['death_certificate', 'receipt_clinic', 'documents', 'supporting_doc'];
             foreach ($docTypes as $dt) {
                 $up = $_FILES[$dt] ?? [];
-                $fname = is_array($up['name'] ?? null) ? ($up['name'][0] ?? '') : ($up['name'] ?? '');
-                $ferr = is_array($up['error'] ?? null) ? ($up['error'][0] ?? UPLOAD_ERR_NO_FILE) : ($up['error'] ?? UPLOAD_ERR_NO_FILE);
-                $tmp = is_array($up['tmp_name'] ?? null) ? ($up['tmp_name'][0] ?? '') : ($up['tmp_name'] ?? '');
-                if ($fname !== '' && $ferr === UPLOAD_ERR_OK && $tmp !== '') {
+                if (!isset($up['name'])) {
+                    continue;
+                }
+                if (is_array($up['name'])) {
+                    $count = count($up['name']);
+                    for ($i = 0; $i < $count; $i++) {
+                        $fname = $up['name'][$i] ?? '';
+                        $ferr  = $up['error'][$i] ?? UPLOAD_ERR_NO_FILE;
+                        $tmp   = $up['tmp_name'][$i] ?? '';
+                        if ($fname === '' || $ferr !== UPLOAD_ERR_OK || $tmp === '') {
+                            continue;
+                        }
+                        $ext = pathinfo($fname, PATHINFO_EXTENSION) ?: 'bin';
+                        $ext = in_array(strtolower($ext), ['pdf', 'jpg', 'jpeg', 'png']) ? strtolower($ext) : 'bin';
+                        $filename = uniqid('', true) . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', basename($fname));
+                        $dest = $uploadDir . '/' . $filename;
+                        if (move_uploaded_file($tmp, $dest)) {
+                            $relPath = 'documents/' . date('Ym') . '/' . $filename;
+                            $ins = $pdo->prepare('INSERT INTO document (application_id, file_path, document_type, created_at) VALUES (?, ?, ?, NOW())');
+                            $ins->execute([$appId, $relPath, $dt]);
+                        }
+                    }
+                } else {
+                    $fname = $up['name'] ?? '';
+                    $ferr  = $up['error'] ?? UPLOAD_ERR_NO_FILE;
+                    $tmp   = $up['tmp_name'] ?? '';
+                    if ($fname === '' || $ferr !== UPLOAD_ERR_OK || $tmp === '') {
+                        continue;
+                    }
                     $ext = pathinfo($fname, PATHINFO_EXTENSION) ?: 'bin';
                     $ext = in_array(strtolower($ext), ['pdf', 'jpg', 'jpeg', 'png']) ? strtolower($ext) : 'bin';
                     $filename = uniqid('', true) . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', basename($fname));
@@ -186,6 +211,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .field-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
         .field-block { display: none; }
         .field-block.active { display: block; }
+        .file-list { margin-top: 0.35rem; padding-left: 1.1rem; font-size: 0.8rem; color: #4b5563; }
+        .file-list li { margin-bottom: 0.15rem; }
         .hint { font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; }
         .btn-submit { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.75rem; border-radius: 999px; background: #0f1419; color: #f9fafb; font-size: 0.9rem; font-weight: 600; border: none; cursor: pointer; transition: transform 0.1s, box-shadow 0.15s; margin-top: 0.5rem; }
         .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,20,25,0.3); }
@@ -266,15 +293,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div id="block-bereavement_student" class="field-block">
                         <p class="hint" style="margin-bottom:1rem">Student — RM 500. Provide bank details and death certificate.</p>
-                        <div class="field"><label>Death certificate <span class="note">(upload, required)</span></label><input type="file" name="death_certificate" accept=".pdf,.jpg,.jpeg,.png" required></div>
+                        <div class="field">
+                            <label>Death certificate <span class="note">(upload, required)</span></label>
+                            <input type="file" name="death_certificate[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                            <ul class="file-list" data-file-list-for="death_certificate"></ul>
+                        </div>
                     </div>
                     <div id="block-bereavement_parent" class="field-block">
                         <p class="hint" style="margin-bottom:1rem">Parent — RM 200.</p>
-                        <div class="field"><label>Death certificate <span class="note">(upload, required)</span></label><input type="file" name="death_certificate" accept=".pdf,.jpg,.jpeg,.png" required></div>
+                        <div class="field">
+                            <label>Death certificate <span class="note">(upload, required)</span></label>
+                            <input type="file" name="death_certificate[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                            <ul class="file-list" data-file-list-for="death_certificate"></ul>
+                        </div>
                     </div>
                     <div id="block-bereavement_sibling" class="field-block">
                         <p class="hint" style="margin-bottom:1rem">Sibling — RM 100.</p>
-                        <div class="field"><label>Death certificate <span class="note">(upload, required)</span></label><input type="file" name="death_certificate" accept=".pdf,.jpg,.jpeg,.png" required></div>
+                        <div class="field">
+                            <label>Death certificate <span class="note">(upload, required)</span></label>
+                            <input type="file" name="death_certificate[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                            <ul class="file-list" data-file-list-for="death_certificate"></ul>
+                        </div>
                     </div>
 
                     <div id="block-illness_outpatient" class="field-block">
@@ -282,7 +321,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="field"><label>Clinic name <span class="note">(required)</span></label><input type="text" name="clinic_name" placeholder="Clinic name" required></div>
                         <div class="field"><label>Reason for visit <span class="note">(required)</span></label><input type="text" name="reason_visit" placeholder="Reason" required></div>
                         <div class="field"><label>Date &amp; time of visit <span class="note">(required)</span></label><input type="datetime-local" name="visit_datetime" required></div>
-                        <div class="field"><label>Clinic receipt <span class="note">(upload, required)</span></label><input type="file" name="receipt_clinic" accept=".pdf,.jpg,.jpeg,.png" required></div>
+                        <div class="field">
+                            <label>Clinic receipt <span class="note">(upload, required)</span></label>
+                            <input type="file" name="receipt_clinic[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                            <ul class="file-list" data-file-list-for="receipt_clinic"></ul>
+                        </div>
                     </div>
                     <div id="block-illness_inpatient" class="field-block">
                         <p class="hint" style="margin-bottom:1rem">In-patient — only if hospitalization exceeds insurance (annual limit RM20,000). Up to RM 1,000; above requires committee approval.</p>
@@ -291,26 +334,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="field"><label>Check-in date <span class="note">(required)</span></label><input type="date" name="checkin_date" required></div>
                             <div class="field"><label>Check-out date <span class="note">(required)</span></label><input type="date" name="checkout_date" required></div>
                         </div>
-                        <div class="field"><label>Report / Discharge note / Hospital bill <span class="note">(upload, required)</span></label><input type="file" name="documents" accept=".pdf,.jpg,.jpeg,.png" required></div>
+                        <div class="field">
+                            <label>Report / Discharge note / Hospital bill <span class="note">(upload, required)</span></label>
+                            <input type="file" name="documents[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                            <ul class="file-list" data-file-list-for="documents"></ul>
+                        </div>
                     </div>
                     <div id="block-illness_injuries" class="field-block">
                         <p class="hint" style="margin-bottom:1rem">Injuries — support equipment up to RM 200.</p>
-                        <div class="field"><label>Hospital report &amp; receipt <span class="note">(upload, required)</span></label><input type="file" name="documents" accept=".pdf,.jpg,.jpeg,.png" required></div>
+                        <div class="field">
+                            <label>Hospital report &amp; receipt <span class="note">(upload, required)</span></label>
+                            <input type="file" name="documents[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                            <ul class="file-list" data-file-list-for="documents"></ul>
+                        </div>
                     </div>
 
                     <div id="block-emergency_critical" class="field-block">
                         <p class="hint" style="margin-bottom:1rem">Critical illness — initial diagnosis, up to RM 200 per claim.</p>
-                        <div class="field"><label>Supporting document <span class="note">(upload, required)</span></label><input type="file" name="supporting_doc" accept=".pdf,.jpg,.jpeg,.png" required></div>
+                        <div class="field">
+                            <label>Supporting document <span class="note">(upload, required)</span></label>
+                            <input type="file" name="supporting_doc[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                            <ul class="file-list" data-file-list-for="supporting_doc"></ul>
+                        </div>
                     </div>
                     <div id="block-emergency_natural" class="field-block">
                         <p class="hint" style="margin-bottom:1rem">Natural disaster — limit RM 200. Include certified evidence.</p>
                         <div class="field"><label>Case description <span class="note">(required)</span></label><input type="text" name="case_description" placeholder="Brief description" required></div>
-                        <div class="field"><label>Supporting document (e.g. police report, photos) <span class="note">(required)</span></label><input type="file" name="supporting_doc" accept=".pdf,.jpg,.jpeg,.png" required></div>
+                        <div class="field">
+                            <label>Supporting document (e.g. police report, photos) <span class="note">(required)</span></label>
+                            <input type="file" name="supporting_doc[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                            <ul class="file-list" data-file-list-for="supporting_doc"></ul>
+                        </div>
                     </div>
                     <div id="block-emergency_others" class="field-block">
                         <p class="hint" style="margin-bottom:1rem">Others — subject to SWF Campus committee approval.</p>
                         <div class="field"><label>Case description <span class="note">(required)</span></label><input type="text" name="case_description" placeholder="Brief description" required></div>
-                        <div class="field"><label>Supporting document <span class="note">(upload, required)</span></label><input type="file" name="supporting_doc" accept=".pdf,.jpg,.jpeg,.png" required></div>
+                        <div class="field">
+                            <label>Supporting document <span class="note">(upload, required)</span></label>
+                            <input type="file" name="supporting_doc[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                            <ul class="file-list" data-file-list-for="supporting_doc"></ul>
+                        </div>
                     </div>
 
                     <div id="commonBank" class="field-block">
@@ -401,11 +464,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    function bindFilePreviews() {
+        var groups = [
+            { name: 'death_certificate', selector: 'input[name="death_certificate[]"]' },
+            { name: 'receipt_clinic', selector: 'input[name="receipt_clinic[]"]' },
+            { name: 'documents', selector: 'input[name="documents[]"]' },
+            { name: 'supporting_doc', selector: 'input[name="supporting_doc[]"]' }
+        ];
+        groups.forEach(function (g) {
+            var inputs = document.querySelectorAll(g.selector);
+            var lists = document.querySelectorAll('.file-list[data-file-list-for="' + g.name + '"]');
+            if (!inputs.length || !lists.length) return;
+            function render(files) {
+                var items = [];
+                for (var i = 0; i < files.length; i++) {
+                    var f = files[i];
+                    var sizeKb = Math.round(f.size / 1024);
+                    items.push('<li>' + f.name + (sizeKb ? ' (' + sizeKb + ' KB)' : '') + '</li>');
+                }
+                lists.forEach(function (ul) { ul.innerHTML = items.join(''); });
+            }
+            inputs.forEach(function (inp) {
+                inp.addEventListener('change', function () {
+                    if (!inp.files || !inp.files.length) {
+                        lists.forEach(function (ul) { ul.innerHTML = ''; });
+                        return;
+                    }
+                    render(inp.files);
+                });
+            });
+        });
+    }
+
     categoryEl.addEventListener('change', function() {
         showSubtypes();
         showBlock();
     });
     subtypeEl.addEventListener('change', showBlock);
+    bindFilePreviews();
     </script>
 </body>
 </html>
