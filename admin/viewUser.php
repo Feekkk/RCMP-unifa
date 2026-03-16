@@ -7,18 +7,48 @@ if (empty($_SESSION['admin_id']) && ($_SESSION['user_role'] ?? '') !== 'admin') 
     exit;
 }
 
-$type = isset($_GET['type']) && $_GET['type'] === 'staff' ? 'staff' : 'student';
+$type = isset($_GET['type']) && in_array($_GET['type'], ['staff', 'admin'], true) ? $_GET['type'] : 'student';
 $id = (int) ($_GET['id'] ?? 0);
 $user = null;
+$msg = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $id > 0) {
+    $action = $_POST['action'] ?? '';
+    if ($action === 'change_password') {
+        $new = $_POST['new_password'] ?? '';
+        $confirm = $_POST['confirm_password'] ?? '';
+        if ($new === '' || $confirm === '') {
+            $msg = 'Password and confirmation are required.';
+        } elseif ($new !== $confirm) {
+            $msg = 'Passwords do not match.';
+        } elseif (strlen($new) < 8) {
+            $msg = 'Password must be at least 8 characters.';
+        } else {
+            try {
+                $hash = password_hash($new, PASSWORD_DEFAULT);
+                if ($type === 'student') {
+                    $stmt = $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
+                    $stmt->execute([$hash, $id]);
+                } else {
+                    $stmt = $pdo->prepare('UPDATE staff SET password_hash = ? WHERE id = ?');
+                    $stmt->execute([$hash, $id]);
+                }
+                $msg = 'Password updated successfully.';
+            } catch (PDOException $e) {
+                $msg = 'Could not update password. Please try again.';
+            }
+        }
+    }
+}
 
 if ($id > 0) {
     try {
         if ($type === 'student') {
-            $stmt = $pdo->prepare('SELECT id, full_name, email, phone, address, bank_name, bank_account, role, created_at FROM users WHERE id = ? AND role = "student"');
+            $stmt = $pdo->prepare('SELECT id, full_name, email, phone, address, bank_name, bank_account, role, created_at FROM users WHERE id = ?');
             $stmt->execute([$id]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
         } else {
-            $stmt = $pdo->prepare('SELECT id, staff_id, full_name, email, phone, created_at FROM staff WHERE id = ? AND role = 1');
+            $stmt = $pdo->prepare('SELECT id, staff_id, full_name, email, phone, role, created_at FROM staff WHERE id = ?');
             $stmt->execute([$id]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
         }
@@ -68,7 +98,7 @@ function formatDate($d) {
         .btn-back { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border-radius: 10px; background: #fff; color: #4b5563; font-size: 0.875rem; text-decoration: none; border: 1px solid #e5e7eb; transition: background 0.15s, color 0.15s; }
         .btn-back:hover { background: #f3f4f6; color: #111827; }
         .btn-back svg { width: 18px; height: 18px; }
-        .detail-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .detail-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 1.5rem; }
         .detail-header { padding: 2rem 1.75rem; background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
         .detail-avatar { width: 72px; height: 72px; border-radius: 50%; background: #4f46e5; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; font-weight: 600; flex-shrink: 0; }
         .detail-header-text h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 600; color: #111827; margin-bottom: 0.25rem; }
@@ -79,7 +109,18 @@ function formatDate($d) {
         .detail-label { font-size: 0.8rem; font-weight: 500; color: #6b7280; }
         .detail-value { font-size: 0.95rem; color: #111827; }
         .detail-value.empty { color: #9ca3af; }
-        .page-footer { text-align: right; padding: 1rem 0; margin-top: 2rem; font-size: 0.8rem; color: #9ca3af; }
+        .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 1.5rem 1.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: #111827; }
+        .field { margin-bottom: 0.85rem; }
+        .field label { display: block; font-size: 0.8rem; font-weight: 500; color: #374151; margin-bottom: 0.3rem; }
+        .field input { width: 100%; border-radius: 10px; border: 1px solid #e5e7eb; padding: 0.6rem 0.8rem; font-size: 0.9rem; outline: none; }
+        .field input:focus { border-color: #4f46e5; }
+        .btn-submit { display: inline-flex; align-items: center; justify-content: center; padding: 0.6rem 1.4rem; border-radius: 999px; background: #0f1419; color: #f9fafb; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; }
+        .btn-submit:hover { background: #111827; }
+        .alert { padding: 0.7rem 0.85rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.85rem; }
+        .alert-success { background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; }
+        .alert-error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+        .page-footer { text-align: right; padding: 1rem 0; margin-top: 1.5rem; font-size: 0.8rem; color: #9ca3af; }
         @media (max-width: 600px) { .detail-row { grid-template-columns: 1fr; } }
         @media (max-width: 768px) {
             .app { flex-direction: column; }
@@ -112,20 +153,48 @@ function formatDate($d) {
 
         <div class="main-content">
             <div class="page-header">
-                <h1 class="page-title"><?php echo $type === 'staff' ? 'Staff details' : 'Student details'; ?></h1>
+                <h1 class="page-title">
+                    <?php
+                        if ($type === 'student') {
+                            echo 'Student details';
+                        } elseif ($type === 'staff') {
+                            echo 'Staff details';
+                        } else {
+                            echo 'Admin details';
+                        }
+                    ?>
+                </h1>
                 <a href="manageUser.php" class="btn-back"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>Back to Manage user</a>
             </div>
+
+            <?php if ($msg !== ''): ?>
+                <div class="alert <?php echo strpos($msg, 'successfully') !== false ? 'alert-success' : 'alert-error'; ?>">
+                    <?php echo htmlspecialchars($msg); ?>
+                </div>
+            <?php endif; ?>
 
             <div class="detail-card">
                 <div class="detail-header">
                     <div class="detail-avatar"><?php echo strtoupper(mb_substr($user['full_name'] ?? 'U', 0, 1)); ?></div>
                     <div class="detail-header-text">
                         <h2><?php echo htmlspecialchars($user['full_name'] ?? ''); ?></h2>
-                        <span class="badge"><?php echo $type === 'staff' ? 'Staff' : 'Student'; ?></span>
+                        <span class="badge">
+                            <?php
+                                if ($type === 'student') {
+                                    echo 'Student';
+                                } elseif (($user['role'] ?? null) == 3) {
+                                    echo 'CEO';
+                                } elseif (($user['role'] ?? null) == 2) {
+                                    echo 'Committee';
+                                } else {
+                                    echo 'Staff';
+                                }
+                            ?>
+                        </span>
                     </div>
                 </div>
                 <div class="detail-body">
-                    <?php if ($type === 'staff'): ?>
+                    <?php if ($type !== 'student'): ?>
                         <div class="detail-row">
                             <span class="detail-label">Staff ID</span>
                             <span class="detail-value"><?php echo htmlspecialchars($user['staff_id'] ?? '—'); ?></span>
@@ -160,12 +229,38 @@ function formatDate($d) {
                             <span class="detail-label">Role</span>
                             <span class="detail-value"><?php echo htmlspecialchars(ucfirst($user['role'] ?? 'student')); ?></span>
                         </div>
+                    <?php else: ?>
+                        <div class="detail-row">
+                            <span class="detail-label">Role</span>
+                            <span class="detail-value">
+                                <?php
+                                    $r = (int) ($user['role'] ?? 0);
+                                    echo $r === 3 ? 'CEO' : ($r === 2 ? 'Committee' : 'Staff');
+                                ?>
+                            </span>
+                        </div>
                     <?php endif; ?>
                     <div class="detail-row">
                         <span class="detail-label">Registered</span>
                         <span class="detail-value"><?php echo formatDate($user['created_at'] ?? null); ?></span>
                     </div>
                 </div>
+            </div>
+
+            <div class="card">
+                <h3>Change password</h3>
+                <form method="post" action="">
+                    <input type="hidden" name="action" value="change_password">
+                    <div class="field">
+                        <label for="new_password">New password</label>
+                        <input type="password" id="new_password" name="new_password" required>
+                    </div>
+                    <div class="field">
+                        <label for="confirm_password">Confirm new password</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Update password</button>
+                </form>
             </div>
             <footer class="page-footer">© University Kuala Lumpur Royal College of Medicine Perak</footer>
         </div>
