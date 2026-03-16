@@ -49,12 +49,23 @@ try {
         .btn-home:hover { background: #f3f4f6; color: #111827; }
         .btn-home svg { width: 18px; height: 18px; }
         .intro { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 1.5rem 1.75rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.06); font-size: 0.95rem; color: #4b5563; line-height: 1.6; }
-        .info-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 1.5rem 1.75rem; margin-bottom: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-        .info-card h2 { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 600; color: #111827; margin-bottom: 0.75rem; }
+        .tabs { display: inline-flex; gap: 0.35rem; padding: 0.3rem; border-radius: 999px; background: #e5e7eb; margin-bottom: 1.25rem; }
+        .tabs button { border: none; background: transparent; padding: 0.3rem 0.9rem; border-radius: 999px; font-size: 0.8rem; color: #4b5563; cursor: pointer; }
+        .tabs button.active { background: #111827; color: #fff; }
+        .info-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1.25rem; align-items: flex-start; }
+        .info-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 1.5rem 1.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .info-card + .info-card { margin-top: 1.25rem; }
+        .info-card h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem; }
         .info-card p { font-size: 0.9rem; color: #4b5563; line-height: 1.6; margin-bottom: 0.75rem; }
+        .info-card h3 { font-size: 0.95rem; font-weight: 600; color: #111827; margin: 0.9rem 0 0.4rem; }
         .info-card ul { margin: 0 0 0 1.25rem; font-size: 0.9rem; color: #374151; line-height: 1.7; }
-        .info-card li { margin-bottom: 0.35rem; }
-        .info-card .limit { display: inline-block; background: #f3f4f6; color: #111827; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; margin-right: 0.35rem; }
+        .info-card li { margin-bottom: 0.3rem; }
+        .info-card .limit { display: inline-block; background: #eef2ff; color: #111827; padding: 0.2rem 0.55rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; margin-right: 0.35rem; }
+        .checklist { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 1.25rem 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .checklist h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem; color: #111827; }
+        .checklist ul { list-style: none; margin-left: 0; font-size: 0.85rem; color: #374151; }
+        .checklist li { margin-bottom: 0.3rem; display: flex; gap: 0.4rem; }
+        .checklist li span.bullet { width: 0.5rem; height: 0.5rem; border-radius: 999px; background: #4f46e5; margin-top: 0.4rem; flex-shrink: 0; }
         .cta-box { margin-top: 1.5rem; }
         .cta-box a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.25rem; border-radius: 999px; background: #0f1419; color: #f9fafb; font-size: 0.875rem; font-weight: 600; text-decoration: none; transition: transform 0.1s, box-shadow 0.15s; }
         .cta-box a:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,20,25,0.3); }
@@ -66,6 +77,7 @@ try {
             .sidebar-nav { display: flex; flex-wrap: wrap; gap: 0.25rem; flex: 1; }
             .sidebar-nav a { padding: 0.5rem 0.75rem; }
             .sidebar-footer { border-top: none; padding: 0; }
+            .info-grid { grid-template-columns: minmax(0, 1fr); }
         }
     </style>
 </head>
@@ -100,36 +112,99 @@ try {
                 <a href="dashboard.php" class="btn-home"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Home</a>
             </div>
 
-            <p class="intro">The Student Welfare Fund (SWF) provides financial assistance for eligible UniKL RCMP students. Below are the four main categories and what you need to know before applying.</p>
+            <p class="intro">The Student Welfare Fund (SWF) provides financial assistance for eligible UniKL RCMP students. Choose a category below to see what documents and information you must prepare before you start the application form.</p>
 
-            <div class="info-card">
-                <h2>1. Bereavement (Khairat)</h2>
-                <p>Financial support when a student, parent, or sibling passes away. You will need your bank details and a death certificate.</p>
-                <ul>
-                    <li><span class="limit">RM 500</span> — Death of <strong>student</strong>: Bank name, bank account number, death certificate (upload).</li>
-                    <li><span class="limit">RM 200</span> — Death of <strong>parent</strong>: Bank name, bank account number, death certificate (upload).</li>
-                    <li><span class="limit">RM 100</span> — Death of <strong>sibling</strong>: Bank name, bank account number, death certificate (upload).</li>
-                </ul>
+            <div class="tabs" id="categoryTabs">
+                <button type="button" data-target="tab-bereavement" class="active">Bereavement</button>
+                <button type="button" data-target="tab-illness">Illness &amp; Injuries</button>
+                <button type="button" data-target="tab-emergency">Emergency</button>
             </div>
 
-            <div class="info-card">
-                <h2>2. Illness &amp; Injuries</h2>
-                <p>Support for medical and injury-related costs within the stated limits.</p>
-                <ul>
-                    <li><span class="limit">Out-patient</span> — Limited to <strong>RM 30 per semester</strong> (max 2 claims per year). You need: clinic name, reason for visit, date &amp; time of visit, amount applied, bank details, and clinic receipt (upload).</li>
-                    <li><span class="limit">In-patient</span> — Only if hospitalization cost <strong>exceeds</strong> the stipulated insurance annual limit (RM 20,000 per student). Support <strong>up to RM 1,000</strong>; amounts above RM 1,000 require SWF Campus committee approval. You need: reason for visit, check-in and check-out dates, amount applied, bank details, and report / discharge note / hospital bill (upload).</li>
-                    <li><span class="limit">Injuries</span> — Support for <strong>injury support equipment up to RM 200</strong>. You need: amount applied, bank details, and hospital report plus receipt of purchase (upload).</li>
-                </ul>
-            </div>
+            <div class="info-grid">
+                <div>
+                    <div class="info-card" id="tab-bereavement">
+                        <h2>Bereavement (Khairat)</h2>
+                        <p>Financial support when a student, parent, or sibling passes away.</p>
+                        <h3>Sub‑categories &amp; limits</h3>
+                        <ul>
+                            <li><span class="limit">RM 500</span>Death of <strong>student</strong></li>
+                            <li><span class="limit">RM 200</span>Death of <strong>parent</strong></li>
+                            <li><span class="limit">RM 100</span>Death of <strong>sibling</strong></li>
+                        </ul>
+                        <h3>What you must prepare</h3>
+                        <ul>
+                            <li>Bank name and bank account number (from your Profile).</li>
+                            <li>Official death certificate (scan or clear photo, PDF/JPG/PNG).</li>
+                        </ul>
+                    </div>
 
-            <div class="info-card">
-                <h2>3. Emergency</h2>
-                <p>One-off support for critical illness, natural disaster, or other emergencies as approved.</p>
-                <ul>
-                    <li><span class="limit">Critical illness</span> — Initial diagnosis with supporting documents, <strong>up to RM 200 per claim</strong>. You need: amount applied, bank details, supporting document (upload).</li>
-                    <li><span class="limit">Natural disaster</span> — <strong>Limit RM 200</strong>. You must provide certified evidence (e.g. police report, photos). You need: case description, amount applied, bank details, supporting document (upload).</li>
-                    <li><span class="limit">Others</span> — Emergency fund requests that do not fall under critical illness or natural disaster are <strong>subject to SWF Campus committee approval</strong>. You need: case description, amount applied, bank details, supporting document (upload).</li>
-                </ul>
+                    <div class="info-card" id="tab-illness" style="display:none">
+                        <h2>Illness &amp; Injuries</h2>
+                        <p>Support for medical and injury‑related costs within the SWF limits.</p>
+
+                        <h3>Out‑patient</h3>
+                        <p><span class="limit">RM 30 / semester</span>Maximum 2 claims per year.</p>
+                        <h3>In‑patient</h3>
+                        <p><span class="limit">Up to RM 1,000</span>Only if total hospitalization cost <strong>exceeds</strong> the insurance annual limit (RM 20,000). Above RM 1,000 requires committee approval.</p>
+                        <h3>Injuries (support equipment)</h3>
+                        <p><span class="limit">Up to RM 200</span>For injury support equipment (e.g. crutches, brace).</p>
+
+                        <h3>What you must prepare</h3>
+                        <ul>
+                            <li>Clinic / hospital name.</li>
+                            <li>Reason for visit / diagnosis.</li>
+                            <li>Date and time of clinic visit or admission / discharge dates.</li>
+                            <li>Amount you are applying for (RM).</li>
+                            <li>Bank name and bank account number (from your Profile).</li>
+                            <li>Receipts and documents (PDF/JPG/PNG):
+                                <ul>
+                                    <li>Out‑patient: clinic receipt.</li>
+                                    <li>In‑patient: report / discharge note / hospital bill.</li>
+                                    <li>Injuries: hospital report and receipt of equipment purchase.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="info-card" id="tab-emergency" style="display:none">
+                        <h2>Emergency</h2>
+                        <p>One‑off support for critical illness, natural disaster, or other emergencies.</p>
+
+                        <h3>Critical illness</h3>
+                        <p><span class="limit">Up to RM 200 / claim</span>For initial diagnosis, based on supporting medical documents.</p>
+
+                        <h3>Natural disaster</h3>
+                        <p><span class="limit">RM 200</span>For events such as flood, fire, etc. Certified evidence is required.</p>
+
+                        <h3>Others</h3>
+                        <p>Other emergency situations not covered above, <strong>subject to SWF Campus committee approval</strong>.</p>
+
+                        <h3>What you must prepare</h3>
+                        <ul>
+                            <li>Short case description (what happened, when, where).</li>
+                            <li>Amount you are applying for (RM).</li>
+                            <li>Bank name and bank account number (from your Profile).</li>
+                            <li>Supporting documents (PDF/JPG/PNG), for example:
+                                <ul>
+                                    <li>Medical report / memo (for critical illness).</li>
+                                    <li>Police report, photos, official letters (for natural disaster).</li>
+                                    <li>Any other evidence relevant to your case.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <aside class="checklist">
+                    <h3>Quick checklist before you apply</h3>
+                    <ul>
+                        <li><span class="bullet"></span><span>Your bank name and bank account number in <strong>Profile</strong> are correct.</span></li>
+                        <li><span class="bullet"></span><span>You know which <strong>category &amp; sub‑type</strong> matches your situation.</span></li>
+                        <li><span class="bullet"></span><span>You have clear <strong>scans/photos</strong> of all required documents (PDF/JPG/PNG).</span></li>
+                        <li><span class="bullet"></span><span>You understand the <strong>maximum amount</strong> you can claim for your sub‑category.</span></li>
+                        <li><span class="bullet"></span><span>You are ready to write a short <strong>description / reason</strong> for your application.</span></li>
+                    </ul>
+                </aside>
             </div>
 
             <div class="cta-box">
@@ -139,4 +214,25 @@ try {
         </div>
     </div>
 </body>
+<script>
+(function () {
+    var tabs = document.querySelectorAll('#categoryTabs button');
+    var panels = {
+        'tab-bereavement': document.getElementById('tab-bereavement'),
+        'tab-illness': document.getElementById('tab-illness'),
+        'tab-emergency': document.getElementById('tab-emergency')
+    };
+    tabs.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var target = btn.getAttribute('data-target');
+            tabs.forEach(function (b) { b.classList.toggle('active', b === btn); });
+            Object.keys(panels).forEach(function (key) {
+                if (panels[key]) {
+                    panels[key].style.display = key === target ? '' : 'none';
+                }
+            });
+        });
+    });
+})();
+</script>
 </html>
