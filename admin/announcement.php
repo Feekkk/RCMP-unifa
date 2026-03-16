@@ -97,7 +97,13 @@ try {
     $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {}
 
-$activeCount = count(array_filter($announcements, fn($a) => (int)$a['is_active'] === 1));
+// Count active announcements without using arrow functions
+$activeCount = 0;
+foreach ($announcements as $a) {
+    if ((int)($a['is_active'] ?? 0) === 1) {
+        $activeCount++;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -414,7 +420,11 @@ $activeCount = count(array_filter($announcements, fn($a) => (int)$a['is_active']
                                         <?php if (!$isActive): ?><span class="tag tag-hidden">Hidden</span><?php endif; ?>
                                     </div>
                                     <?php if (!empty($ann['body'])): ?>
-                                        <div class="ann-row-body-text"><?php echo htmlspecialchars(mb_strimwidth($ann['body'], 0, 140, '…')); ?></div>
+                                        <?php
+                                            $bodyText = (string)($ann['body'] ?? '');
+                                            $preview = strlen($bodyText) > 140 ? substr($bodyText, 0, 140) . '…' : $bodyText;
+                                        ?>
+                                        <div class="ann-row-body-text"><?php echo htmlspecialchars($preview); ?></div>
                                     <?php endif; ?>
                                     <div class="ann-row-meta">
                                         <span>
