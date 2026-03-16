@@ -236,10 +236,10 @@ try {
             font-weight: 600;
             color: #111827;
         }
-        .top-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
+        .dashboard-subtitle {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 0.15rem;
         }
         .btn-icon {
             text-decoration: none;
@@ -282,26 +282,6 @@ try {
             align-items: center;
             justify-content: center;
         }
-        .search-wrap {
-            display: flex;
-            align-items: center;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 0.5rem 0.85rem;
-            min-width: 200px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-        .search-wrap svg { width: 18px; height: 18px; color: #9ca3af; flex-shrink: 0; margin-right: 0.5rem; }
-        .search-wrap input {
-            background: none;
-            border: none;
-            color: #111827;
-            font-size: 0.9rem;
-            outline: none;
-            width: 100%;
-        }
-        .search-wrap input::placeholder { color: #9ca3af; }
         .kbd-hint {
             font-size: 0.75rem;
             color: #6b7280;
@@ -658,8 +638,24 @@ try {
 
         <div class="main-content">
         <header class="dashboard-header">
-            <h1 class="dashboard-title">Student Dashboard</h1>
-            <div class="top-actions">
+            <div>
+                <h1 class="dashboard-title">Student Dashboard</h1>
+                <p class="dashboard-subtitle">
+                    <?php
+                        $greetingName = htmlspecialchars($userName, ENT_QUOTES, 'UTF-8');
+                        $hour = (int)date('G');
+                        if ($hour < 12) {
+                            $greetingText = 'Good morning';
+                        } elseif ($hour < 18) {
+                            $greetingText = 'Good afternoon';
+                        } else {
+                            $greetingText = 'Good evening';
+                        }
+                        echo $greetingText . ', ' . $greetingName . '.';
+                    ?>
+                </p>
+            </div>
+            <div class="user-menu">
                 <div class="notif-dropdown-wrap">
                     <button type="button" class="btn-icon" id="notifBtn" aria-label="Notifications" aria-expanded="false" title="Notifications">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-6-6 6 6 0 00-6 6v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
@@ -714,12 +710,6 @@ try {
                         </div>
                     </div>
                 </div>
-                <div class="search-wrap">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <input type="search" placeholder="Search" aria-label="Search">
-                </div>
-            </div>
-            <div class="user-menu">
                 <a href="../index.php">Home</a>
             </div>
         </header>
